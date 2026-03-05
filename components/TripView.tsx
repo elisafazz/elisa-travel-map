@@ -258,6 +258,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
         selected={selected}
         onSelect={setSelected}
         userLocation={userLocation}
+        searchActive={!!q}
       />
     </div>
   )

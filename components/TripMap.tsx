@@ -76,6 +76,24 @@ function MapContent({
   const map = useMap()
   const mapped = items.filter(i => i.coordinates)
 
+  // Fit map to all pins on initial load
+  useEffect(() => {
+    if (!map || mapped.length === 0) return
+    if (mapped.length === 1) {
+      map.panTo(mapped[0].coordinates!)
+      map.setZoom(14)
+      return
+    }
+    const lats = mapped.map(i => i.coordinates!.lat)
+    const lngs = mapped.map(i => i.coordinates!.lng)
+    map.fitBounds(
+      { north: Math.max(...lats), south: Math.min(...lats), east: Math.max(...lngs), west: Math.min(...lngs) },
+      60
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map])
+
+  // Pan to selected item
   useEffect(() => {
     if (selected?.coordinates && map) {
       map.panTo(selected.coordinates)

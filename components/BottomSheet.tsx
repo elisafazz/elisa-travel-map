@@ -38,15 +38,20 @@ interface Props {
   selected: TripItem | null
   onSelect: (item: TripItem | null) => void
   userLocation?: UserLocation | null
+  searchActive?: boolean
 }
 
-export default function BottomSheet({ items, selected, onSelect, userLocation }: Props) {
+export default function BottomSheet({ items, selected, onSelect, userLocation, searchActive }: Props) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (selected) setOpen(true)
   }, [selected])
+
+  useEffect(() => {
+    if (searchActive) setOpen(true)
+  }, [searchActive])
 
   useEffect(() => {
     setCopied(false)
@@ -85,9 +90,10 @@ export default function BottomSheet({ items, selected, onSelect, userLocation }:
       }}
     >
       {/* Handle + header */}
-      <div
-        className="flex items-center px-4 cursor-pointer select-none"
-        style={{ height: 52 }}
+      <button
+        type="button"
+        className="w-full flex items-center px-4 select-none bg-transparent border-0 outline-none"
+        style={{ height: 52, touchAction: 'manipulation' }}
         onClick={handleHeaderTap}
       >
         <div className="absolute left-1/2 -translate-x-1/2 top-2.5 w-10 h-1 bg-gray-300 rounded-full" />
@@ -105,7 +111,7 @@ export default function BottomSheet({ items, selected, onSelect, userLocation }:
           )}
         </div>
         <span className="text-gray-400 text-xs mt-1 ml-2">{open ? '↓' : '↑'}</span>
-      </div>
+      </button>
 
       {/* Content */}
       <div className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 52px)' }}>
