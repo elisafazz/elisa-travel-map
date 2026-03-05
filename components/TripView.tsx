@@ -27,9 +27,10 @@ interface Props {
   items: TripItem[]
   apiKey: string
   legLabel?: string
+  onFullscreenChange?: (fs: boolean) => void
 }
 
-export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
+export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreenChange }: Props) {
   const [selected, setSelected] = useState<TripItem | null>(null)
   const [activeFilters, setActiveFilters] = useState<Set<ItemStatus>>(new Set())
   const [activeLegs, setActiveLegs] = useState<Set<string>>(new Set())
@@ -39,6 +40,14 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [nearMeState, setNearMeState] = useState<NearMeState>('idle')
   const [fullscreen, setFullscreen] = useState(false)
+
+  function toggleFullscreen() {
+    setFullscreen(f => {
+      const next = !f
+      onFullscreenChange?.(next)
+      return next
+    })
+  }
 
   const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
   const today = getTodayStr()
@@ -252,7 +261,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
           />
           <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
           <button
-            onClick={() => setFullscreen(f => !f)}
+            onClick={toggleFullscreen}
             className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
             title={fullscreen ? 'Exit fullscreen' : 'Fullscreen map'}
           >

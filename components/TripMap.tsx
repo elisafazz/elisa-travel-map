@@ -285,6 +285,7 @@ export default function TripMap({ items, apiKey, selected, onSelect, userLocatio
         mapId="travel-map"
         style={{ width: '100%', height: '100%' }}
         gestureHandling="greedy"
+        mapTypeControl={false}
         onClick={() => onSelect(null)}
       >
         <MapContent items={items} selected={selected} onSelect={onSelect} userLocation={userLocation} />
