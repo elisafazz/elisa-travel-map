@@ -4,7 +4,7 @@ import { useState } from 'react'
 import TripMap from './TripMap'
 import Sidebar from './Sidebar'
 import Legend from './Legend'
-import type { TripItem, ItemStatus } from '@/lib/types'
+import type { TripItem, ItemStatus, ItemType } from '@/lib/types'
 
 const STATUSES: { value: ItemStatus; label: string; color: string; active: string }[] = [
   { value: 'Confirmed',   label: 'Confirmed',   color: 'border-green-300 text-green-700',  active: 'bg-green-500 border-green-500 text-white' },
@@ -22,6 +22,7 @@ export default function TripView({ items, apiKey }: Props) {
   const [selected, setSelected] = useState<TripItem | null>(null)
   const [activeFilters, setActiveFilters] = useState<Set<ItemStatus>>(new Set())
   const [activeLegs, setActiveLegs] = useState<Set<string>>(new Set())
+  const [activeTypes, setActiveTypes] = useState<Set<ItemType>>(new Set())
 
   const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
 
@@ -45,9 +46,25 @@ export default function TripView({ items, apiKey }: Props) {
     setSelected(null)
   }
 
+  function toggleType(type: ItemType) {
+    setActiveTypes(prev => {
+      const next = new Set(prev)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
+    setSelected(null)
+  }
+
+  function clearTypes() {
+    setActiveTypes(new Set())
+    setSelected(null)
+  }
+
   const filtered = items
     .filter(i => activeFilters.size === 0 || (i.status && activeFilters.has(i.status)))
     .filter(i => activeLegs.size === 0 || activeLegs.has(i.legCity))
+    .filter(i => activeTypes.size === 0 || (i.type && activeTypes.has(i.type)))
 
   return (
     <div className="flex flex-1 overflow-hidden flex-col">
@@ -114,7 +131,7 @@ export default function TripView({ items, apiKey }: Props) {
         <Sidebar items={filtered} selected={selected} onSelect={setSelected} />
         <div className="relative flex-1">
           <TripMap items={filtered} apiKey={apiKey} selected={selected} onSelect={setSelected} />
-          <Legend />
+          <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
         </div>
       </div>
     </div>
