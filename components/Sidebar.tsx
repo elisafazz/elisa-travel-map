@@ -1,18 +1,20 @@
 'use client'
 
+import { haversineKm, formatDistance } from '@/lib/geo'
 import type { TripItem, ItemType } from '@/lib/types'
+import type { UserLocation } from '@/lib/geo'
 
 const TYPE_ORDER: ItemType[] = ['Hotel', 'Restaurant', 'Activity', 'Flight', 'Train', 'Ferry', 'Car Rental', 'Other']
 
-const TYPE_META: Record<string, { emoji: string; color: string }> = {
-  Hotel:      { emoji: '🏨', color: '#3B82F6' },
-  Restaurant: { emoji: '🍽️', color: '#EF4444' },
-  Activity:   { emoji: '⚡', color: '#10B981' },
-  Flight:     { emoji: '✈️', color: '#8B5CF6' },
-  Train:      { emoji: '🚅', color: '#F59E0B' },
-  Ferry:      { emoji: '⛴️', color: '#06B6D4' },
-  'Car Rental': { emoji: '🚗', color: '#F97316' },
-  Other:      { emoji: '📍', color: '#6B7280' },
+const TYPE_META: Record<string, { emoji: string }> = {
+  Hotel:        { emoji: '🏨' },
+  Restaurant:   { emoji: '🍽️' },
+  Activity:     { emoji: '⚡' },
+  Flight:       { emoji: '✈️' },
+  Train:        { emoji: '🚅' },
+  Ferry:        { emoji: '⛴️' },
+  'Car Rental': { emoji: '🚗' },
+  Other:        { emoji: '📍' },
 }
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -37,41 +39,56 @@ interface Props {
   items: TripItem[]
   selected: TripItem | null
   onSelect: (item: TripItem) => void
+  userLocation?: UserLocation | null
   className?: string
 }
 
-export default function Sidebar({ items, selected, onSelect, className = '' }: Props) {
-  const grouped = TYPE_ORDER.map(type => ({
-    type,
-    items: items.filter(i => i.type === type),
-  })).filter(g => g.items.length > 0)
+export default function Sidebar({ items, selected, onSelect, userLocation, className = '' }: Props) {
+  // When near-me is active, items are already sorted by distance — show flat list
+  // Otherwise group by type
+  const nearMeActive = !!userLocation
 
-  const typeless = items.filter(i => !i.type)
-  if (typeless.length > 0) grouped.push({ type: 'Other' as ItemType, items: typeless })
+  const grouped = nearMeActive
+    ? [{ type: null as ItemType | null, items }]
+    : TYPE_ORDER.map(type => ({
+        type: type as ItemType | null,
+        items: items.filter(i => i.type === type),
+      })).filter(g => g.items.length > 0).concat(
+        items.filter(i => !i.type).length > 0
+          ? [{ type: 'Other' as ItemType, items: items.filter(i => !i.type) }]
+          : []
+      )
 
   return (
     <aside className={`w-72 flex-shrink-0 bg-white border-r border-gray-100 overflow-y-auto flex-col ${className}`}>
       <div className="px-4 py-3 border-b border-gray-100">
         <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">
           {items.length} items · {items.filter(i => i.coordinates).length} mapped
+          {nearMeActive && <span className="text-blue-400 ml-1">· sorted by distance</span>}
         </p>
       </div>
 
       <div className="flex-1">
-        {grouped.map(({ type, items: groupItems }) => {
-          const meta = TYPE_META[type] ?? TYPE_META.Other
+        {grouped.map(({ type, items: groupItems }, groupIdx) => {
+          const meta = type ? (TYPE_META[type] ?? TYPE_META.Other) : null
           return (
-            <div key={type}>
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 sticky top-0 z-10">
-                <span className="text-sm">{meta.emoji}</span>
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{type}s</span>
-                <span className="ml-auto text-xs text-gray-400">{groupItems.length}</span>
-              </div>
+            <div key={type ?? groupIdx}>
+              {meta && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 sticky top-0 z-10">
+                  <span className="text-sm">{meta.emoji}</span>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{type}s</span>
+                  <span className="ml-auto text-xs text-gray-400">{groupItems.length}</span>
+                </div>
+              )}
 
               {groupItems.map(item => {
                 const isSelected = selected?.id === item.id
                 const hasCords = !!item.coordinates
                 const borderClass = STATUS_BORDER[item.status ?? ''] ?? 'border-l-gray-100'
+                const distance = userLocation && item.coordinates
+                  ? formatDistance(haversineKm(userLocation.lat, userLocation.lng, item.coordinates.lat, item.coordinates.lng))
+                  : null
+
                 return (
                   <button
                     key={item.id}
@@ -86,17 +103,14 @@ export default function Sidebar({ items, selected, onSelect, className = '' }: P
                         {item.name}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        {item.legCity && (
-                          <span className="text-xs text-gray-400 truncate">{item.legCity}</span>
-                        )}
-                        {item.date && (
-                          <span className="text-xs text-gray-300 flex-shrink-0">{formatDate(item.date)}</span>
-                        )}
+                        {item.legCity && <span className="text-xs text-gray-400 truncate">{item.legCity}</span>}
+                        {item.date && <span className="text-xs text-gray-300 flex-shrink-0">{formatDate(item.date)}</span>}
                       </div>
-                      {!hasCords && (
-                        <div className="text-xs text-orange-400 mt-0.5">Not geocoded</div>
-                      )}
+                      {!hasCords && <div className="text-xs text-orange-400 mt-0.5">Not geocoded</div>}
                     </div>
+                    {distance && (
+                      <span className="flex-shrink-0 text-xs font-medium text-blue-400 mt-0.5">{distance}</span>
+                    )}
                   </button>
                 )
               })}

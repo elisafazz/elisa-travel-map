@@ -5,14 +5,18 @@ import TripMap from './TripMap'
 import Sidebar from './Sidebar'
 import Legend from './Legend'
 import BottomSheet from './BottomSheet'
+import { haversineKm } from '@/lib/geo'
 import type { TripItem, ItemStatus, ItemType } from '@/lib/types'
+import type { UserLocation } from '@/lib/geo'
 
 const STATUSES: { value: ItemStatus; label: string; color: string; active: string }[] = [
-  { value: 'Confirmed',   label: 'Confirmed',   color: 'border-green-300 text-green-700',  active: 'bg-green-500 border-green-500 text-white' },
+  { value: 'Confirmed',   label: 'Confirmed',   color: 'border-green-300 text-green-700',   active: 'bg-green-500 border-green-500 text-white' },
   { value: 'Shortlisted', label: 'Shortlisted', color: 'border-yellow-300 text-yellow-700', active: 'bg-yellow-400 border-yellow-400 text-white' },
-  { value: 'Researching', label: 'Researching', color: 'border-gray-300 text-gray-600',    active: 'bg-gray-500 border-gray-500 text-white' },
-  { value: 'Cancelled',   label: 'Cancelled',   color: 'border-red-300 text-red-500',      active: 'bg-red-500 border-red-500 text-white' },
+  { value: 'Researching', label: 'Researching', color: 'border-gray-300 text-gray-600',     active: 'bg-gray-500 border-gray-500 text-white' },
+  { value: 'Cancelled',   label: 'Cancelled',   color: 'border-red-300 text-red-500',       active: 'bg-red-500 border-red-500 text-white' },
 ]
+
+type NearMeState = 'idle' | 'loading' | 'active' | 'error'
 
 function getTodayStr(): string {
   const d = new Date()
@@ -32,6 +36,8 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
   const [activeTypes, setActiveTypes] = useState<Set<ItemType>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [todayOnly, setTodayOnly] = useState(false)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [nearMeState, setNearMeState] = useState<NearMeState>('idle')
 
   const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
   const today = getTodayStr()
@@ -71,6 +77,23 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
     setSelected(null)
   }
 
+  function requestNearMe() {
+    if (nearMeState === 'active') {
+      setUserLocation(null)
+      setNearMeState('idle')
+      return
+    }
+    setNearMeState('loading')
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setNearMeState('active')
+      },
+      () => setNearMeState('error'),
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
   const q = searchQuery.trim().toLowerCase()
 
   const filtered = items
@@ -79,6 +102,21 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
     .filter(i => activeTypes.size === 0 || (i.type && activeTypes.has(i.type)))
     .filter(i => !todayOnly || i.date === today)
     .filter(i => !q || i.name.toLowerCase().includes(q) || i.venue.toLowerCase().includes(q))
+
+  // Sort by distance when Near me is active; push unmapped items to bottom
+  const displayItems = nearMeState === 'active' && userLocation
+    ? [...filtered].sort((a, b) => {
+        const da = a.coordinates ? haversineKm(userLocation.lat, userLocation.lng, a.coordinates.lat, a.coordinates.lng) : Infinity
+        const db = b.coordinates ? haversineKm(userLocation.lat, userLocation.lng, b.coordinates.lat, b.coordinates.lng) : Infinity
+        return da - db
+      })
+    : filtered
+
+  const nearMeLabel =
+    nearMeState === 'loading' ? '…' :
+    nearMeState === 'active'  ? '📍 Near me' :
+    nearMeState === 'error'   ? 'Location off' :
+    '📍 Near me'
 
   return (
     <div className="flex flex-1 overflow-hidden flex-col">
@@ -96,10 +134,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
           />
         </div>
         {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
-            className="text-xs text-gray-400 hover:text-gray-600"
-          >
+          <button onClick={() => setSearchQuery('')} className="text-xs text-gray-400 hover:text-gray-600">
             Clear
           </button>
         )}
@@ -110,7 +145,22 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
         className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-100 overflow-x-auto flex-nowrap"
         style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
-        {/* Today toggle */}
+        {/* Near me */}
+        <button
+          onClick={requestNearMe}
+          disabled={nearMeState === 'loading'}
+          className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
+            nearMeState === 'active'
+              ? 'bg-blue-500 border-blue-500 text-white'
+              : nearMeState === 'error'
+              ? 'border-red-300 text-red-400 bg-white'
+              : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50'
+          }`}
+        >
+          {nearMeLabel}
+        </button>
+
+        {/* Today */}
         <button
           onClick={() => { setTodayOnly(t => !t); setSelected(null) }}
           className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
@@ -179,28 +229,36 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
           </>
         )}
 
-        <span className="flex-shrink-0 text-xs text-gray-300 pl-3">{filtered.length} items</span>
+        <span className="flex-shrink-0 text-xs text-gray-300 pl-3">{displayItems.length} items</span>
       </div>
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — desktop only */}
         <Sidebar
-          items={filtered}
+          items={displayItems}
           selected={selected}
           onSelect={setSelected}
+          userLocation={userLocation}
           className="hidden md:flex"
         />
-
-        {/* Map */}
         <div className="relative flex-1">
-          <TripMap items={filtered} apiKey={apiKey} selected={selected} onSelect={setSelected} />
+          <TripMap
+            items={displayItems}
+            apiKey={apiKey}
+            selected={selected}
+            onSelect={setSelected}
+            userLocation={userLocation}
+          />
           <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
         </div>
       </div>
 
-      {/* Bottom sheet — mobile only */}
-      <BottomSheet items={filtered} selected={selected} onSelect={setSelected} />
+      <BottomSheet
+        items={displayItems}
+        selected={selected}
+        onSelect={setSelected}
+        userLocation={userLocation}
+      />
     </div>
   )
 }
