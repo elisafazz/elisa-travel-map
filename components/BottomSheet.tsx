@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { mapsUrl, haversineKm, formatDistance } from '@/lib/geo'
 import type { TripItem } from '@/lib/types'
 import type { UserLocation } from '@/lib/geo'
@@ -44,6 +44,9 @@ interface Props {
 export default function BottomSheet({ items, selected, onSelect, userLocation, searchActive }: Props) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [dragOffset, setDragOffset] = useState<number | null>(null)
+  const dragRef = useRef<{ startY: number; startTime: number; wasOpen: boolean } | null>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (selected) setOpen(true)
@@ -75,19 +78,107 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
     }
   }
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Only allow drag from the handle area (first 52px) or when scrolled to top
+    const touch = e.touches[0]
+    dragRef.current = { startY: touch.clientY, startTime: Date.now(), wasOpen: open }
+    setDragOffset(0)
+  }, [open])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!dragRef.current) return
+    const touch = e.touches[0]
+    const dy = touch.clientY - dragRef.current.startY
+
+    // If sheet is open and user is scrolling content up, don't drag
+    const contentEl = sheetRef.current?.querySelector('[data-content]') as HTMLElement | null
+    if (dragRef.current.wasOpen && contentEl && contentEl.scrollTop > 0 && dy < 0) {
+      dragRef.current = null
+      setDragOffset(null)
+      return
+    }
+
+    // Only allow dragging down when open, or up when closed
+    if (dragRef.current.wasOpen && dy < 0) {
+      setDragOffset(0)
+      return
+    }
+    if (!dragRef.current.wasOpen && dy > 0) {
+      setDragOffset(0)
+      return
+    }
+
+    e.preventDefault()
+    setDragOffset(dy)
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    if (!dragRef.current || dragOffset === null) {
+      dragRef.current = null
+      return
+    }
+
+    const elapsed = Date.now() - dragRef.current.startTime
+    const velocity = Math.abs(dragOffset) / elapsed // px/ms
+
+    // Fast swipe (velocity) or dragged far enough (> 80px)
+    const shouldToggle = velocity > 0.3 || Math.abs(dragOffset) > 80
+
+    if (shouldToggle) {
+      if (dragRef.current.wasOpen) {
+        // Was open, swiped down -> close
+        if (showDetail) {
+          onSelect(null)
+        } else {
+          setOpen(false)
+        }
+      } else {
+        // Was closed, swiped up -> open
+        setOpen(true)
+      }
+    }
+    // else snap back to current state
+
+    dragRef.current = null
+    setDragOffset(null)
+  }, [dragOffset, showDetail, onSelect])
+
   const distance = selected && userLocation && selected.coordinates
     ? formatDistance(haversineKm(userLocation.lat, userLocation.lng, selected.coordinates.lat, selected.coordinates.lng))
     : null
 
+  // Calculate transform: base position + drag offset
+  const baseTranslate = open ? 0 : 'calc(100% - 52px)'
+  const isDragging = dragOffset !== null && dragOffset !== 0
+  let transform: string
+  if (isDragging) {
+    if (open) {
+      // Clamp: only allow dragging down (positive offset)
+      const clamped = Math.max(0, dragOffset!)
+      transform = `translateY(${clamped}px)`
+    } else {
+      // Clamp: only allow dragging up (negative offset)
+      const clamped = Math.min(0, dragOffset!)
+      transform = `translateY(calc(100% - 52px + ${clamped}px))`
+    }
+  } else {
+    transform = `translateY(${baseTranslate})`
+  }
+
   return (
     <div
+      ref={sheetRef}
       className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-30 md:hidden"
       style={{
         maxHeight: '72vh',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
-        transform: open ? 'translateY(0)' : 'translateY(calc(100% - 52px))',
-        transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+        transform,
+        transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+        touchAction: 'none',
       }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Handle + header */}
       <button
@@ -114,7 +205,7 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
       </button>
 
       {/* Content */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 52px)' }}>
+      <div data-content className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 52px)', touchAction: 'pan-y' }}>
         {showDetail ? (
           <div className="px-4 pb-8">
             {selected!.priority && (
