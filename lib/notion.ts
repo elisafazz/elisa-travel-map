@@ -73,6 +73,17 @@ export async function fetchTripItems(tripId: string): Promise<TripItem[]> {
   return allItems
 }
 
+export async function fetchTripLegCount(tripId: string): Promise<number> {
+  const response: any = await notion.databases.query({
+    database_id: TRIP_LEGS_DB,
+    filter: {
+      property: 'Trip',
+      relation: { contains: tripId },
+    },
+  })
+  return response.results.length
+}
+
 export async function fetchAllTripItems(): Promise<TripItem[]> {
   const allItems: TripItem[] = []
   let cursor: string | undefined

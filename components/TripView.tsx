@@ -16,9 +16,10 @@ const STATUSES: { value: ItemStatus; label: string; color: string; active: strin
 interface Props {
   items: TripItem[]
   apiKey: string
+  legLabel?: string
 }
 
-export default function TripView({ items, apiKey }: Props) {
+export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
   const [selected, setSelected] = useState<TripItem | null>(null)
   const [activeFilters, setActiveFilters] = useState<Set<ItemStatus>>(new Set())
   const [activeLegs, setActiveLegs] = useState<Set<string>>(new Set())
@@ -95,7 +96,7 @@ export default function TripView({ items, apiKey }: Props) {
         {legs.length > 1 && (
           <>
             <span className="text-gray-200 mx-1">|</span>
-            <span className="text-xs text-gray-400 font-medium">Leg:</span>
+            <span className="text-xs text-gray-400 font-medium">{legLabel}:</span>
             {legs.map(city => {
               const isActive = activeLegs.has(city)
               return (

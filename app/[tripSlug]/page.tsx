@@ -1,4 +1,4 @@
-import { fetchAllTrips, fetchTripItems } from '@/lib/notion'
+import { fetchAllTrips, fetchTripItems, fetchTripLegCount } from '@/lib/notion'
 import { geocodeVenue } from '@/lib/geocode'
 import TripView from '@/components/TripView'
 import Link from 'next/link'
@@ -18,7 +18,10 @@ export default async function TripPage({ params }: { params: Promise<{ tripSlug:
 
   if (!trip) notFound()
 
-  const rawItems = await fetchTripItems(trip.id)
+  const [rawItems, legCount] = await Promise.all([
+    fetchTripItems(trip.id),
+    fetchTripLegCount(trip.id),
+  ])
 
   const items = await Promise.all(
     rawItems.map(async item => {
@@ -44,7 +47,7 @@ export default async function TripPage({ params }: { params: Promise<{ tripSlug:
         )}
       </header>
 
-      <TripView items={items} apiKey={apiKey} />
+      <TripView items={items} apiKey={apiKey} legLabel={legCount === 1 ? 'Neighborhood' : 'Leg'} />
     </div>
   )
 }
