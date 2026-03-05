@@ -2,13 +2,18 @@ import type { Coordinates } from './types'
 
 const GEOCODING_API_KEY = process.env.GOOGLE_MAPS_API_KEY!
 
-async function getRedis() {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return null
-  const { Redis } = await import('@upstash/redis')
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
+async function withRedis<T>(fn: (client: import('redis').RedisClientType) => Promise<T>): Promise<T | null> {
+  if (!process.env.REDIS_URL) return null
+  const { createClient } = await import('redis')
+  const client = createClient({ url: process.env.REDIS_URL }) as import('redis').RedisClientType
+  try {
+    await client.connect()
+    return await fn(client)
+  } catch {
+    return null
+  } finally {
+    await client.disconnect().catch(() => {})
+  }
 }
 
 function cacheKey(venue: string, city: string): string {
@@ -25,15 +30,11 @@ export async function geocodeVenue(
   const key = cacheKey(venue, city)
 
   // Try cache first
-  try {
-    const redis = await getRedis()
-    if (redis) {
-      const cached = await redis.get<Coordinates>(key)
-      if (cached) return cached
-    }
-  } catch {
-    // Cache unavailable — proceed without it
-  }
+  const cached = await withRedis(async client => {
+    const val = await client.get(key)
+    return val ? JSON.parse(val) as Coordinates : null
+  })
+  if (cached) return cached
 
   // Call Geocoding API
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${GEOCODING_API_KEY}`
@@ -45,12 +46,10 @@ export async function geocodeVenue(
   const location = data.results[0].geometry.location as Coordinates
 
   // Store in cache (30 days)
-  try {
-    const redis = await getRedis()
-    if (redis) await redis.set(key, location, { ex: 60 * 60 * 24 * 30 })
-  } catch {
-    // Cache unavailable — skip
-  }
+  await withRedis(async client => {
+    await client.set(key, JSON.stringify(location), { EX: 60 * 60 * 24 * 30 })
+    return null
+  })
 
   return location
 }
