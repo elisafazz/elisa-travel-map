@@ -22,6 +22,17 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2025-03-05
 
+- **Clean up map controls** - Cathy
+  - Removed street view, satellite toggle, and Google's fullscreen button
+  - Moved zoom controls to top-left so they're not blocked by the bottom sheet
+
+- **True fullscreen map mode** - Cathy
+  - Fullscreen button now hides the trip header bar too (not just filters/sidebar)
+  - Removed map/satellite toggle for cleaner UI
+
+- **Fix legend overlapping bottom sheet** - Cathy
+  - Legend now sits above the collapsed bottom sheet on mobile
+
 - **Fix bottom sheet swipe gestures on mobile** - Cathy
   - Added touch drag handling with velocity-based snap detection
   - Swipe up/down now properly controls the sheet instead of moving the map
