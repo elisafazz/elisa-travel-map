@@ -33,9 +33,10 @@ export async function fetchAllTrips(): Promise<Trip[]> {
   }))
 }
 
-export async function fetchTripItems(tripUrl: string): Promise<TripItem[]> {
+export async function fetchTripItems(tripId: string): Promise<TripItem[]> {
   const allItems: TripItem[] = []
   let cursor: string | undefined
+  const normalizedTripId = tripId.replace(/-/g, '')
 
   do {
     const response: any = await notion.databases.query({
@@ -49,10 +50,7 @@ export async function fetchTripItems(tripUrl: string): Promise<TripItem[]> {
       const linkedTripId = tripRelation[0]?.id
 
       if (!linkedTripId) continue
-
-      // Match by trip page ID (last part of URL)
-      const tripPageId = tripUrl.split('/').pop()?.replace(/-/g, '')
-      if (linkedTripId.replace(/-/g, '') !== tripPageId) continue
+      if (linkedTripId.replace(/-/g, '') !== normalizedTripId) continue
 
       allItems.push({
         id: page.id,
@@ -64,7 +62,7 @@ export async function fetchTripItems(tripUrl: string): Promise<TripItem[]> {
         legCity: getText(page.properties['Leg / City']),
         venue: getText(page.properties['Provider / Venue']),
         notes: getText(page.properties['Notes']),
-        tripUrl,
+        tripUrl: page.url,
         date: page.properties['Date']?.date?.start ?? null,
       })
     }

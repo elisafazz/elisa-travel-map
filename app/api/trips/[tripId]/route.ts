@@ -14,7 +14,7 @@ export async function GET(
     return NextResponse.json({ error: 'Trip not found' }, { status: 404 })
   }
 
-  const items = await fetchTripItems(trip.url)
+  const items = await fetchTripItems(trip.id)
 
   // Geocode items without coordinates
   const geocoded = await Promise.all(

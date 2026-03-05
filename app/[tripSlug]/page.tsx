@@ -19,7 +19,7 @@ export default async function TripPage({ params }: { params: Promise<{ tripSlug:
 
   if (!trip) notFound()
 
-  const rawItems = await fetchTripItems(trip.url)
+  const rawItems = await fetchTripItems(trip.id)
 
   // Geocode all items
   const items = await Promise.all(
