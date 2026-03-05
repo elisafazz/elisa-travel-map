@@ -7,6 +7,7 @@ export async function POST(request: Request) {
 
     // Notion verification challenge
     if (body.verification_token) {
+      console.log('NOTION_VERIFY_TOKEN:', body.verification_token)
       return NextResponse.json({ verification_token: body.verification_token })
     }
 
