@@ -24,7 +24,7 @@ export default function TripPageClient({ trip, items, apiKey, mappedCount, unmap
           <Link href="/" className="text-gray-400 hover:text-gray-700 text-sm">← All trips</Link>
           <div className="flex-1">
             <h1 className="font-bold text-lg leading-tight">{trip.name}</h1>
-            <p className="text-gray-400 text-xs">{trip.location} · {mappedCount} locations mapped</p>
+            <p className="text-gray-400 text-xs">{trip.location}</p>
           </div>
           {unmappedCount > 0 && (
             <span className="text-xs text-orange-500">{unmappedCount} items not geocoded</span>

@@ -36,7 +36,7 @@ export default async function Home() {
     <main className="min-h-screen bg-gray-950">
       {/* Header */}
       <div className="px-8 pt-12 pb-6">
-        <h1 className="text-4xl font-bold text-white tracking-tight">Trip Map</h1>
+        <h1 className="text-4xl font-bold text-white tracking-tight">Trip Maps</h1>
         <p className="text-gray-400 mt-1 text-sm">All trips · Click to open the map</p>
       </div>
 
