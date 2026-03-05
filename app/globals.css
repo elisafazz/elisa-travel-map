@@ -5,10 +5,10 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 
-/* Push Google Maps bottom-right controls above the mobile bottom sheet */
+/* Hide Google Maps bottom-right controls on mobile (blocked by bottom sheet) */
 @media (max-width: 767px) {
   .gm-bundled-control,
-  .gmnoprint[style*="right"] {
-    bottom: 70px !important;
+  .gmnoprint:not(.gm-style-mtc) {
+    display: none !important;
   }
 }
