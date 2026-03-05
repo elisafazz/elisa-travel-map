@@ -288,8 +288,7 @@ export default function TripMap({ items, apiKey, selected, onSelect, userLocatio
         mapTypeControl={false}
         streetViewControl={false}
         fullscreenControl={false}
-        zoomControl={true}
-        zoomControlOptions={{ position: 3 }}
+        zoomControl={false}
         onClick={() => onSelect(null)}
       >
         <MapContent items={items} selected={selected} onSelect={onSelect} userLocation={userLocation} />
