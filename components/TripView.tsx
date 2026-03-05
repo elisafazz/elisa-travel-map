@@ -21,6 +21,9 @@ interface Props {
 export default function TripView({ items, apiKey }: Props) {
   const [selected, setSelected] = useState<TripItem | null>(null)
   const [activeFilters, setActiveFilters] = useState<Set<ItemStatus>>(new Set())
+  const [activeLegs, setActiveLegs] = useState<Set<string>>(new Set())
+
+  const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
 
   function toggleFilter(status: ItemStatus) {
     setActiveFilters(prev => {
@@ -29,19 +32,28 @@ export default function TripView({ items, apiKey }: Props) {
       else next.add(status)
       return next
     })
-    // Deselect if selected item no longer matches filter
     setSelected(null)
   }
 
-  const filtered = activeFilters.size === 0
-    ? items
-    : items.filter(i => i.status && activeFilters.has(i.status))
+  function toggleLeg(city: string) {
+    setActiveLegs(prev => {
+      const next = new Set(prev)
+      if (next.has(city)) next.delete(city)
+      else next.add(city)
+      return next
+    })
+    setSelected(null)
+  }
+
+  const filtered = items
+    .filter(i => activeFilters.size === 0 || (i.status && activeFilters.has(i.status)))
+    .filter(i => activeLegs.size === 0 || activeLegs.has(i.legCity))
 
   return (
     <div className="flex flex-1 overflow-hidden flex-col">
       {/* Filter bar */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-100">
-        <span className="text-xs text-gray-400 font-medium mr-1">Filter:</span>
+      <div className="flex flex-wrap items-center gap-2 px-4 py-2 bg-white border-b border-gray-100">
+        <span className="text-xs text-gray-400 font-medium mr-1">Status:</span>
         {STATUSES.map(s => {
           const isActive = activeFilters.has(s.value)
           return (
@@ -62,6 +74,38 @@ export default function TripView({ items, apiKey }: Props) {
             Clear
           </button>
         )}
+
+        {legs.length > 1 && (
+          <>
+            <span className="text-gray-200 mx-1">|</span>
+            <span className="text-xs text-gray-400 font-medium">Leg:</span>
+            {legs.map(city => {
+              const isActive = activeLegs.has(city)
+              return (
+                <button
+                  key={city}
+                  onClick={() => toggleLeg(city)}
+                  className={`text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
+                    isActive
+                      ? 'bg-indigo-500 border-indigo-500 text-white'
+                      : 'border-indigo-200 text-indigo-600 bg-white hover:bg-indigo-50'
+                  }`}
+                >
+                  {city}
+                </button>
+              )
+            })}
+            {activeLegs.size > 0 && (
+              <button
+                onClick={() => { setActiveLegs(new Set()); setSelected(null) }}
+                className="text-xs text-gray-400 hover:text-gray-600 ml-1 underline"
+              >
+                Clear
+              </button>
+            )}
+          </>
+        )}
+
         <span className="ml-auto text-xs text-gray-400">{filtered.length} items</span>
       </div>
 
