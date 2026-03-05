@@ -38,6 +38,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
   const [todayOnly, setTodayOnly] = useState(false)
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [nearMeState, setNearMeState] = useState<NearMeState>('idle')
+  const [fullscreen, setFullscreen] = useState(false)
 
   const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
   const today = getTodayStr()
@@ -122,7 +123,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
     <div className="flex flex-1 overflow-hidden flex-col">
 
       {/* Search bar */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-50">
+      <div className={`flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-50 ${fullscreen ? 'hidden' : ''}`}>
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">🔍</span>
           <input
@@ -140,9 +141,9 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
         )}
       </div>
 
-      {/* Filter bar — single scrollable row */}
+      {/* Filter bar - single scrollable row */}
       <div
-        className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-100 overflow-x-auto flex-nowrap"
+        className={`flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-100 overflow-x-auto flex-nowrap ${fullscreen ? 'hidden' : ''}`}
         style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         {/* Near me */}
@@ -239,7 +240,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
           selected={selected}
           onSelect={setSelected}
           userLocation={userLocation}
-          className="hidden md:flex"
+          className={fullscreen ? 'hidden' : 'hidden md:flex'}
         />
         <div className="relative flex-1">
           <TripMap
@@ -250,16 +251,33 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
             userLocation={userLocation}
           />
           <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
+          <button
+            onClick={() => setFullscreen(f => !f)}
+            className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
+            title={fullscreen ? 'Exit fullscreen' : 'Fullscreen map'}
+          >
+            {fullscreen ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="4 14 10 14 10 20" /><polyline points="20 10 14 10 14 4" />
+                <line x1="14" y1="10" x2="21" y2="3" /><line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
-      <BottomSheet
+      {!fullscreen && <BottomSheet
         items={displayItems}
         selected={selected}
         onSelect={setSelected}
         userLocation={userLocation}
         searchActive={!!q}
-      />
+      />}
     </div>
   )
 }

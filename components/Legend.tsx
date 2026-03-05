@@ -21,7 +21,7 @@ interface Props {
 export default function Legend({ activeTypes, onToggle, onClear }: Props) {
   const anyActive = activeTypes.size > 0
   return (
-    <div className="absolute bottom-8 left-4 bg-white rounded-xl shadow-lg px-4 py-3 flex flex-col gap-1.5 z-10">
+    <div className="absolute bottom-20 md:bottom-8 left-4 bg-white rounded-xl shadow-lg px-4 py-3 flex flex-col gap-1.5 z-10">
       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-0.5">Filter type</p>
       {LEGEND.map(({ label, color, glyph }) => {
         const isActive = activeTypes.has(label)
