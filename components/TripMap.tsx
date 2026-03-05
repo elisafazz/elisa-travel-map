@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useImperativeHandle, forwardRef } from 'react'
 import {
   APIProvider,
   Map,
@@ -67,17 +67,18 @@ function MapContent({
   selected,
   onSelect,
   userLocation,
+  onRecenterReady,
 }: {
   items: TripItem[]
   selected: TripItem | null
   onSelect: (item: TripItem | null) => void
   userLocation: UserLocation | null
+  onRecenterReady?: (fn: () => void) => void
 }) {
   const map = useMap()
   const mapped = items.filter(i => i.coordinates)
 
-  // Fit map to all pins on initial load
-  useEffect(() => {
+  const fitAll = useCallback(() => {
     if (!map || mapped.length === 0) return
     if (mapped.length === 1) {
       map.panTo(mapped[0].coordinates!)
@@ -90,8 +91,18 @@ function MapContent({
       { north: Math.max(...lats), south: Math.min(...lats), east: Math.max(...lngs), west: Math.min(...lngs) },
       60
     )
+  }, [map, mapped])
+
+  // Fit map to all pins on initial load
+  useEffect(() => {
+    fitAll()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map])
+
+  // Expose recenter function to parent
+  useEffect(() => {
+    onRecenterReady?.(() => fitAll())
+  }, [fitAll, onRecenterReady])
 
   // Pan to selected item
   useEffect(() => {
@@ -265,9 +276,10 @@ interface Props {
   selected: TripItem | null
   onSelect: (item: TripItem | null) => void
   userLocation: UserLocation | null
+  onRecenterReady?: (fn: () => void) => void
 }
 
-export default function TripMap({ items, apiKey, selected, onSelect, userLocation }: Props) {
+export default function TripMap({ items, apiKey, selected, onSelect, userLocation, onRecenterReady }: Props) {
   const mapped = items.filter(i => i.coordinates)
 
   const center = userLocation ?? (mapped.length > 0
@@ -294,7 +306,7 @@ export default function TripMap({ items, apiKey, selected, onSelect, userLocatio
         clickableIcons={false}
         onClick={() => onSelect(null)}
       >
-        <MapContent items={items} selected={selected} onSelect={onSelect} userLocation={userLocation} />
+        <MapContent items={items} selected={selected} onSelect={onSelect} userLocation={userLocation} onRecenterReady={onRecenterReady} />
       </Map>
     </APIProvider>
   )

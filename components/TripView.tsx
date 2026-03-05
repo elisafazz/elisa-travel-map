@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import TripMap from './TripMap'
 import Sidebar from './Sidebar'
 import Legend from './Legend'
@@ -40,6 +40,8 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [nearMeState, setNearMeState] = useState<NearMeState>('idle')
   const [fullscreen, setFullscreen] = useState(false)
+  const recenterRef = useRef<(() => void) | null>(null)
+  const handleRecenterReady = useCallback((fn: () => void) => { recenterRef.current = fn }, [])
 
   function toggleFullscreen() {
     setFullscreen(f => {
@@ -258,8 +260,20 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
             selected={selected}
             onSelect={setSelected}
             userLocation={userLocation}
+            onRecenterReady={handleRecenterReady}
           />
           <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
+          <button
+            onClick={() => { recenterRef.current?.(); setSelected(null) }}
+            className="absolute top-4 right-16 z-10 bg-white rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
+            title="Show all pins"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" />
+              <line x1="12" y1="2" x2="12" y2="5" /><line x1="12" y1="19" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="5" y2="12" /><line x1="19" y1="12" x2="22" y2="12" />
+            </svg>
+          </button>
           <button
             onClick={toggleFullscreen}
             className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
