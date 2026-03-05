@@ -2,10 +2,13 @@ import type { Coordinates } from './types'
 
 const GEOCODING_API_KEY = process.env.GOOGLE_MAPS_API_KEY!
 
-// Cache stored in Vercel KV — imported lazily so it doesn't break local dev
-async function getKV() {
-  const { kv } = await import('@vercel/kv')
-  return kv
+async function getRedis() {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return null
+  const { Redis } = await import('@upstash/redis')
+  return new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  })
 }
 
 function cacheKey(venue: string, city: string): string {
@@ -23,11 +26,13 @@ export async function geocodeVenue(
 
   // Try cache first
   try {
-    const kv = await getKV()
-    const cached = await kv.get<Coordinates>(key)
-    if (cached) return cached
+    const redis = await getRedis()
+    if (redis) {
+      const cached = await redis.get<Coordinates>(key)
+      if (cached) return cached
+    }
   } catch {
-    // KV not available locally — skip cache
+    // Cache unavailable — proceed without it
   }
 
   // Call Geocoding API
@@ -39,12 +44,12 @@ export async function geocodeVenue(
 
   const location = data.results[0].geometry.location as Coordinates
 
-  // Store in cache
+  // Store in cache (30 days)
   try {
-    const kv = await getKV()
-    await kv.set(key, location, { ex: 60 * 60 * 24 * 30 }) // 30 days
+    const redis = await getRedis()
+    if (redis) await redis.set(key, location, { ex: 60 * 60 * 24 * 30 })
   } catch {
-    // KV not available locally — skip
+    // Cache unavailable — skip
   }
 
   return location
