@@ -7,6 +7,12 @@ const TRAVEL_PLANNING_DB = '72792a7e-eb9e-468a-a376-fd1e7284401c'
 const TRIP_ITEMS_DB = '9947ef07-3483-472b-b452-f2ebc23edabe'
 const TRIP_LEGS_DB = 'fee283c0-9ee7-46ff-8758-fbc58fba496d'
 
+function getCheckbox(prop: any): boolean {
+  if (!prop) return false
+  if (prop.type === 'checkbox') return prop.checkbox ?? false
+  return false
+}
+
 function getText(prop: any): string {
   if (!prop) return ''
   if (prop.type === 'title') return prop.title?.map((t: any) => t.plain_text).join('') ?? ''
@@ -64,6 +70,7 @@ export async function fetchTripItems(tripId: string): Promise<TripItem[]> {
         notes: getText(page.properties['Notes']),
         tripUrl: page.url,
         date: page.properties['Date']?.date?.start ?? null,
+        reservationRequired: getCheckbox(page.properties['Reservation Required']),
       })
     }
 
@@ -111,6 +118,7 @@ export async function fetchAllTripItems(): Promise<TripItem[]> {
         notes: getText(page.properties['Notes']),
         tripUrl: `https://www.notion.so/${tripRelation[0].id.replace(/-/g, '')}`,
         date: page.properties['Date']?.date?.start ?? null,
+        reservationRequired: getCheckbox(page.properties['Reservation Required']),
       })
     }
 

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import TripMap from './TripMap'
 import Sidebar from './Sidebar'
 import Legend from './Legend'
+import BottomSheet from './BottomSheet'
 import type { TripItem, ItemStatus, ItemType } from '@/lib/types'
 
 const STATUSES: { value: ItemStatus; label: string; color: string; active: string }[] = [
@@ -12,6 +13,11 @@ const STATUSES: { value: ItemStatus; label: string; color: string; active: strin
   { value: 'Researching', label: 'Researching', color: 'border-gray-300 text-gray-600',    active: 'bg-gray-500 border-gray-500 text-white' },
   { value: 'Cancelled',   label: 'Cancelled',   color: 'border-red-300 text-red-500',      active: 'bg-red-500 border-red-500 text-white' },
 ]
+
+function getTodayStr(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 interface Props {
   items: TripItem[]
@@ -24,8 +30,11 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
   const [activeFilters, setActiveFilters] = useState<Set<ItemStatus>>(new Set())
   const [activeLegs, setActiveLegs] = useState<Set<string>>(new Set())
   const [activeTypes, setActiveTypes] = useState<Set<ItemType>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [todayOnly, setTodayOnly] = useState(false)
 
   const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
+  const today = getTodayStr()
 
   function toggleFilter(status: ItemStatus) {
     setActiveFilters(prev => {
@@ -62,23 +71,69 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
     setSelected(null)
   }
 
+  const q = searchQuery.trim().toLowerCase()
+
   const filtered = items
     .filter(i => activeFilters.size === 0 || (i.status && activeFilters.has(i.status)))
     .filter(i => activeLegs.size === 0 || activeLegs.has(i.legCity))
     .filter(i => activeTypes.size === 0 || (i.type && activeTypes.has(i.type)))
+    .filter(i => !todayOnly || i.date === today)
+    .filter(i => !q || i.name.toLowerCase().includes(q) || i.venue.toLowerCase().includes(q))
 
   return (
     <div className="flex flex-1 overflow-hidden flex-col">
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2 px-4 py-2 bg-white border-b border-gray-100">
-        <span className="text-xs text-gray-400 font-medium mr-1">Status:</span>
+
+      {/* Search bar */}
+      <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-50">
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">🔍</span>
+          <input
+            type="search"
+            placeholder="Search items…"
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); setSelected(null) }}
+            className="w-full text-sm pl-8 pr-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
+          />
+        </div>
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="text-xs text-gray-400 hover:text-gray-600"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* Filter bar — single scrollable row */}
+      <div
+        className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-100 overflow-x-auto flex-nowrap"
+        style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+      >
+        {/* Today toggle */}
+        <button
+          onClick={() => { setTodayOnly(t => !t); setSelected(null) }}
+          className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
+            todayOnly
+              ? 'bg-violet-500 border-violet-500 text-white'
+              : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50'
+          }`}
+        >
+          Today
+        </button>
+
+        <span className="flex-shrink-0 text-gray-200">|</span>
+
+        <span className="flex-shrink-0 text-xs text-gray-400 font-medium">Status:</span>
         {STATUSES.map(s => {
           const isActive = activeFilters.has(s.value)
           return (
             <button
               key={s.value}
               onClick={() => toggleFilter(s.value)}
-              className={`text-xs font-medium px-3 py-1 rounded-full border transition-colors ${isActive ? s.active : s.color + ' bg-white hover:bg-gray-50'}`}
+              className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
+                isActive ? s.active : s.color + ' bg-white hover:bg-gray-50'
+              }`}
             >
               {s.label}
             </button>
@@ -87,7 +142,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
         {activeFilters.size > 0 && (
           <button
             onClick={() => { setActiveFilters(new Set()); setSelected(null) }}
-            className="text-xs text-gray-400 hover:text-gray-600 ml-1 underline"
+            className="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600 underline"
           >
             Clear
           </button>
@@ -95,15 +150,15 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
 
         {legs.length > 1 && (
           <>
-            <span className="text-gray-200 mx-1">|</span>
-            <span className="text-xs text-gray-400 font-medium">{legLabel}:</span>
+            <span className="flex-shrink-0 text-gray-200 mx-1">|</span>
+            <span className="flex-shrink-0 text-xs text-gray-400 font-medium">{legLabel}:</span>
             {legs.map(city => {
               const isActive = activeLegs.has(city)
               return (
                 <button
                   key={city}
                   onClick={() => toggleLeg(city)}
-                  className={`text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
+                  className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
                     isActive
                       ? 'bg-indigo-500 border-indigo-500 text-white'
                       : 'border-indigo-200 text-indigo-600 bg-white hover:bg-indigo-50'
@@ -116,7 +171,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
             {activeLegs.size > 0 && (
               <button
                 onClick={() => { setActiveLegs(new Set()); setSelected(null) }}
-                className="text-xs text-gray-400 hover:text-gray-600 ml-1 underline"
+                className="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600 underline"
               >
                 Clear
               </button>
@@ -124,17 +179,28 @@ export default function TripView({ items, apiKey, legLabel = 'Leg' }: Props) {
           </>
         )}
 
-        <span className="ml-auto text-xs text-gray-400">{filtered.length} items</span>
+        <span className="flex-shrink-0 text-xs text-gray-300 pl-3">{filtered.length} items</span>
       </div>
 
-      {/* Sidebar + map */}
+      {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar items={filtered} selected={selected} onSelect={setSelected} />
+        {/* Sidebar — desktop only */}
+        <Sidebar
+          items={filtered}
+          selected={selected}
+          onSelect={setSelected}
+          className="hidden md:flex"
+        />
+
+        {/* Map */}
         <div className="relative flex-1">
           <TripMap items={filtered} apiKey={apiKey} selected={selected} onSelect={setSelected} />
           <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
         </div>
       </div>
+
+      {/* Bottom sheet — mobile only */}
+      <BottomSheet items={filtered} selected={selected} onSelect={setSelected} />
     </div>
   )
 }

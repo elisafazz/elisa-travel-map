@@ -40,6 +40,7 @@ export interface TripItem {
   notes: string
   tripUrl: string
   date: string | null
+  reservationRequired: boolean
   coordinates?: Coordinates
 }
 

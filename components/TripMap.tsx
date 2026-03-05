@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   APIProvider,
   Map,
@@ -21,6 +21,19 @@ const TYPE_STYLES: Record<string, { bg: string; border: string; glyph: string }>
   default:      { bg: '#6B7280', border: '#374151', glyph: '📍' },
 }
 
+const PRIORITY_COLORS: Record<string, string> = {
+  Must:     '#ef4444',
+  High:     '#f97316',
+  Optional: '#d1d5db',
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  Confirmed:   '#22c55e',
+  Shortlisted: '#eab308',
+  Researching: '#9ca3af',
+  Cancelled:   '#ef4444',
+}
+
 function markerStyle(type: ItemType | null) {
   return TYPE_STYLES[type ?? 'default'] ?? TYPE_STYLES.default
 }
@@ -33,7 +46,33 @@ function googleMapsUrl(item: TripItem): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${item.name} ${item.legCity}`)}`
 }
 
-// Inner component — has access to the map via useMap
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  async function handleCopy() {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <button
+      onClick={handleCopy}
+      style={{
+        fontSize: 11,
+        color: copied ? '#22c55e' : '#9ca3af',
+        cursor: 'pointer',
+        background: 'none',
+        border: '1px solid #e5e7eb',
+        borderRadius: 4,
+        padding: '2px 8px',
+        flexShrink: 0,
+        fontWeight: 500,
+      }}
+    >
+      {copied ? '✓ Copied' : 'Copy'}
+    </button>
+  )
+}
+
 function MapContent({
   items,
   selected,
@@ -46,7 +85,6 @@ function MapContent({
   const map = useMap()
   const mapped = items.filter(i => i.coordinates)
 
-  // Pan to selected item when it changes (e.g. clicked from sidebar)
   useEffect(() => {
     if (selected?.coordinates && map) {
       map.panTo(selected.coordinates)
@@ -97,45 +135,92 @@ function MapContent({
           onCloseClick={() => onSelect(null)}
           pixelOffset={[0, -20]}
         >
-          <div style={{ maxWidth: 280, fontFamily: 'system-ui, sans-serif', padding: '2px 0' }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, color: '#111' }}>
-              {selected.name}
+          <div style={{ maxWidth: 290, fontFamily: 'system-ui, sans-serif', padding: '2px 0' }}>
+            {/* Priority stripe */}
+            {selected.priority && (
+              <div style={{
+                height: 3,
+                borderRadius: 2,
+                background: PRIORITY_COLORS[selected.priority] ?? '#d1d5db',
+                marginBottom: 10,
+                width: 36,
+              }} />
+            )}
+
+            {/* Name + copy */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#111', flex: 1, lineHeight: 1.3 }}>
+                {selected.name}
+              </div>
+              <CopyButton text={[selected.venue || selected.name, selected.legCity].filter(Boolean).join(', ')} />
             </div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>
+
+            {/* Type + leg */}
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>
               {[selected.type, selected.legCity].filter(Boolean).join(' · ')}
             </div>
 
-            {selected.priority && (
-              <div style={{ fontSize: 12, marginBottom: 3 }}>
-                <span style={{ fontWeight: 600, color: '#374151' }}>Priority:</span>{' '}
-                <span style={{ color: selected.priority === 'Must' ? '#ef4444' : selected.priority === 'High' ? '#f97316' : '#6b7280' }}>
+            {/* Badges row */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
+              {selected.status && (
+                <span style={{
+                  fontSize: 11, fontWeight: 600,
+                  padding: '2px 8px', borderRadius: 12,
+                  background: STATUS_COLORS[selected.status] ?? '#9ca3af',
+                  color: '#fff',
+                }}>
+                  {selected.status}
+                </span>
+              )}
+              {selected.priority && (
+                <span style={{
+                  fontSize: 11, fontWeight: 600,
+                  padding: '2px 8px', borderRadius: 12,
+                  background: PRIORITY_COLORS[selected.priority] ?? '#d1d5db',
+                  color: selected.priority === 'Optional' ? '#6b7280' : '#fff',
+                }}>
                   {selected.priority}
                 </span>
-              </div>
-            )}
-            {selected.status && (
-              <div style={{ fontSize: 12, marginBottom: 8 }}>
-                <span style={{ fontWeight: 600, color: '#374151' }}>Status:</span>{' '}
-                {selected.status}
+              )}
+              {selected.reservationRequired && (
+                <span style={{
+                  fontSize: 11, fontWeight: 600,
+                  padding: '2px 8px', borderRadius: 12,
+                  background: '#fef3c7', color: '#92400e',
+                }}>
+                  Reservation required
+                </span>
+              )}
+            </div>
+
+            {/* Date */}
+            {selected.date && (
+              <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 6 }}>
+                📅 {selected.date}
               </div>
             )}
 
+            {/* Notes */}
             {selected.notes && (
-              <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginBottom: 10, borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
-                {selected.notes.length > 200 ? selected.notes.slice(0, 200) + '…' : selected.notes}
+              <div style={{
+                fontSize: 12, color: '#374151', lineHeight: 1.5,
+                marginBottom: 10, borderTop: '1px solid #f3f4f6', paddingTop: 8,
+              }}>
+                {selected.notes.length > 220 ? selected.notes.slice(0, 220) + '…' : selected.notes}
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <a
                 href={googleMapsUrl(selected)}
                 target="_blank"
                 rel="noreferrer"
                 style={{
-                  fontSize: 12,
-                  color: '#fff',
+                  flex: 1, textAlign: 'center',
+                  fontSize: 12, color: '#fff',
                   background: '#4285F4',
-                  padding: '4px 10px',
+                  padding: '5px 10px',
                   borderRadius: 6,
                   textDecoration: 'none',
                   fontWeight: 600,
@@ -147,7 +232,13 @@ function MapContent({
                 href={selected.url}
                 target="_blank"
                 rel="noreferrer"
-                style={{ fontSize: 12, color: '#6b7280', alignSelf: 'center' }}
+                style={{
+                  fontSize: 12, color: '#6b7280', alignSelf: 'center',
+                  padding: '5px 8px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 6,
+                  textDecoration: 'none',
+                }}
               >
                 Notion →
               </a>
