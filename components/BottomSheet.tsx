@@ -19,7 +19,7 @@ const TYPE_EMOJIS: Record<string, string> = {
 const PRIORITY_COLORS: Record<string, string> = {
   Must:     '#ef4444',
   High:     '#f97316',
-  Optional: '#d1d5db',
+  Optional: '#6b7280',
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -93,7 +93,6 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
   }
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Only allow drag from the handle area (first 52px) or when scrolled to top
     const touch = e.touches[0]
     dragRef.current = { startY: touch.clientY, startTime: Date.now(), wasOpen: open }
     setDragOffset(0)
@@ -104,7 +103,6 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
     const touch = e.touches[0]
     const dy = touch.clientY - dragRef.current.startY
 
-    // If sheet is open and user is scrolling content up, don't drag
     const contentEl = sheetRef.current?.querySelector('[data-content]') as HTMLElement | null
     if (dragRef.current.wasOpen && contentEl && contentEl.scrollTop > 0 && dy < 0) {
       dragRef.current = null
@@ -112,7 +110,6 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
       return
     }
 
-    // Only allow dragging down when open, or up when closed
     if (dragRef.current.wasOpen && dy < 0) {
       setDragOffset(0)
       return
@@ -133,25 +130,21 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
     }
 
     const elapsed = Date.now() - dragRef.current.startTime
-    const velocity = Math.abs(dragOffset) / elapsed // px/ms
+    const velocity = Math.abs(dragOffset) / elapsed
 
-    // Fast swipe (velocity) or dragged far enough (> 80px)
     const shouldToggle = velocity > 0.3 || Math.abs(dragOffset) > 80
 
     if (shouldToggle) {
       if (dragRef.current.wasOpen) {
-        // Was open, swiped down -> close
         if (showDetail) {
           onSelect(null)
         } else {
           setOpen(false)
         }
       } else {
-        // Was closed, swiped up -> open
         setOpen(true)
       }
     }
-    // else snap back to current state
 
     dragRef.current = null
     setDragOffset(null)
@@ -161,17 +154,14 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
     ? formatDistance(haversineKm(userLocation.lat, userLocation.lng, selected.coordinates.lat, selected.coordinates.lng))
     : null
 
-  // Calculate transform: base position + drag offset
   const baseTranslate = open ? 0 : 'calc(100% - 52px)'
   const isDragging = dragOffset !== null && dragOffset !== 0
   let transform: string
   if (isDragging) {
     if (open) {
-      // Clamp: only allow dragging down (positive offset)
       const clamped = Math.max(0, dragOffset!)
       transform = `translateY(${clamped}px)`
     } else {
-      // Clamp: only allow dragging up (negative offset)
       const clamped = Math.min(0, dragOffset!)
       transform = `translateY(calc(100% - 52px + ${clamped}px))`
     }
@@ -182,10 +172,10 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
   return (
     <div
       ref={sheetRef}
-      className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-30 md:hidden"
+      className="fixed bottom-0 left-0 right-0 bg-gray-800 rounded-t-2xl z-30 md:hidden"
       style={{
         maxHeight: '72vh',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
         transform,
         transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         touchAction: 'none',
@@ -201,28 +191,28 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
         style={{ height: 52, touchAction: 'manipulation' }}
         onClick={handleHeaderTap}
       >
-        <div className="absolute left-1/2 -translate-x-1/2 top-2.5 w-10 h-1 bg-gray-300 rounded-full" />
+        <div className="absolute left-1/2 -translate-x-1/2 top-2.5 w-10 h-1 bg-white/20 rounded-full" />
         <div className="flex-1 flex items-center gap-2 mt-1">
           {showDetail ? (
             <>
               <span className="text-base">{TYPE_EMOJIS[selected!.type ?? ''] ?? '📍'}</span>
-              <span className="font-semibold text-sm text-gray-900 truncate">{selected!.name}</span>
+              <span className="font-semibold text-sm text-white truncate">{selected!.name}</span>
               {distance && <span className="text-xs text-blue-400 flex-shrink-0">{distance}</span>}
             </>
           ) : (
-            <span className="text-sm font-medium text-gray-500">
+            <span className="text-sm font-medium text-white/50">
               {items.length} item{items.length !== 1 ? 's' : ''}
             </span>
           )}
         </div>
-        <span className="text-gray-400 text-xs mt-1 ml-2">{open ? '↓' : '↑'}</span>
+        <span className="text-white/30 text-xs mt-1 ml-2">{open ? '↓' : '↑'}</span>
       </button>
 
       {/* Content */}
       <div data-content className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 52px)', touchAction: 'pan-y' }}>
         {!showDetail && dates && dates.length > 0 && onSelectDate && (
-          <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
-            <DayTimeline dates={dates} selectedDate={selectedDate ?? null} onSelectDate={onSelectDate} variant="light" />
+          <div className="sticky top-0 z-10 bg-gray-800 border-b border-white/10">
+            <DayTimeline dates={dates} selectedDate={selectedDate ?? null} onSelectDate={onSelectDate} />
           </div>
         )}
         {showDetail ? (
@@ -235,26 +225,26 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
             {selected!.priority && (
               <div style={{
                 height: 3, borderRadius: 2, width: 32, marginBottom: 12,
-                background: PRIORITY_COLORS[selected!.priority] ?? '#d1d5db',
+                background: PRIORITY_COLORS[selected!.priority] ?? '#6b7280',
               }} />
             )}
 
             <div className="flex items-start gap-3 mb-1">
-              <h2 className="flex-1 font-bold text-base text-gray-900 leading-tight">{selected!.name}</h2>
+              <h2 className="flex-1 font-bold text-base text-white leading-tight">{selected!.name}</h2>
               <button
                 onClick={handleCopy}
-                className="flex-shrink-0 text-xs px-3 py-1 rounded-full border border-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-xs px-3 py-1 rounded-full border border-white/15 text-white/40 hover:text-white/70 transition-colors"
               >
                 {copied ? '✓ Copied' : 'Copy'}
               </button>
             </div>
 
             <div className="flex items-center gap-2 mb-3">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-white/40">
                 {[selected!.type, selected!.legCity].filter(Boolean).join(' · ')}
               </p>
               {distance && (
-                <span className="text-xs font-semibold text-blue-500">{distance}</span>
+                <span className="text-xs font-semibold text-blue-400">{distance}</span>
               )}
             </div>
 
@@ -271,26 +261,26 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
                 <span
                   className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
                   style={{
-                    background: PRIORITY_COLORS[selected!.priority] ?? '#d1d5db',
-                    color: selected!.priority === 'Optional' ? '#6b7280' : '#fff',
+                    background: PRIORITY_COLORS[selected!.priority] ?? '#6b7280',
+                    color: '#fff',
                   }}
                 >
                   {selected!.priority}
                 </span>
               )}
               {selected!.reservationRequired && (
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
                   Reservation required
                 </span>
               )}
             </div>
 
             {selected!.date && (
-              <p className="text-xs text-gray-400 mb-3">📅 {formatDate(selected!.date)}</p>
+              <p className="text-xs text-white/40 mb-3">📅 {formatDate(selected!.date)}</p>
             )}
 
             {selected!.notes && (
-              <p className="text-xs text-gray-600 leading-relaxed mb-5 border-t border-gray-100 pt-3">
+              <p className="text-xs text-white/60 leading-relaxed mb-5 border-t border-white/10 pt-3">
                 {selected!.notes}
               </p>
             )}
@@ -308,17 +298,17 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
                 href={selected!.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm font-medium text-gray-500 border border-gray-200 rounded-xl px-5 py-3"
+                className="text-sm font-medium text-white/50 border border-white/15 rounded-xl px-5 py-3"
               >
                 Notion
               </a>
             </div>
-          </div>  {/* closes px-4 wrapper */}
+          </div>
         </div>
         ) : (
           <div className="pb-4">
             {items.length === 0 ? (
-              <p className="text-center text-sm text-gray-400 py-10">No items match filters</p>
+              <p className="text-center text-sm text-white/40 py-10">No items match filters</p>
             ) : (
               items.map(item => {
                 const dist = userLocation && item.coordinates
@@ -330,13 +320,13 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
                     onClick={() => onSelect(item)}
                     className="w-full text-left px-3 mb-1.5"
                   >
-                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 active:bg-white/10 transition-colors">
                     <span className="text-base flex-shrink-0">{TYPE_EMOJIS[item.type ?? ''] ?? '📍'}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
+                      <p className="text-sm font-medium text-white truncate">{item.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        {item.legCity && <span className="text-xs text-gray-400 truncate">{item.legCity}</span>}
-                        {item.date && <span className="text-xs text-gray-300 flex-shrink-0">{formatDate(item.date)}</span>}
+                        {item.legCity && <span className="text-xs text-white/40 truncate">{item.legCity}</span>}
+                        {item.date && <span className="text-xs text-white/25 flex-shrink-0">{formatDate(item.date)}</span>}
                       </div>
                     </div>
                     <div className="flex-shrink-0 flex flex-col items-end gap-1">

@@ -22,6 +22,11 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `4:30pm` **Dark theme bottom sheet** - Cathy
+  - Bottom sheet now matches the rest of the app with `gray-800` background
+  - Dark card-style list items, white text, dark detail view
+  - Handle bar, badges, and buttons all dark-themed
+
 - `4:15pm` **Unified top bar color** - Cathy
   - Safe area, header, toolbar, and day timeline all use solid `gray-800` - one seamless bar from status bar to map edge
 
