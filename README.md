@@ -22,6 +22,9 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `3:40pm` **Fix status bar too dark on map view** - Cathy
+  - Header is now semi-transparent so the map shows through the safe area
+
 - `3:30pm` **Near Me shows only nearby pins** - Cathy
   - Filters to pins within 5km of your location and centers map on you
   - List and map only show what's actually close by
