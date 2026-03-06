@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useImperativeHandle, forwardRef } from 'react'
+import { useEffect, useState, useCallback, useImperativeHandle, forwardRef, useRef } from 'react'
 import {
   APIProvider,
   Map,
@@ -8,6 +8,7 @@ import {
   InfoWindow,
   useMap,
 } from '@vis.gl/react-google-maps'
+import { MarkerClusterer, SuperClusterAlgorithm } from '@googlemaps/markerclusterer'
 import { mapsUrl, haversineKm, formatDistance } from '@/lib/geo'
 import type { TripItem, ItemType } from '@/lib/types'
 import type { UserLocation } from '@/lib/geo'
@@ -77,6 +78,8 @@ function MapContent({
 }) {
   const map = useMap()
   const mapped = items.filter(i => i.coordinates)
+  const markersRef = useRef<globalThis.Map<string, google.maps.marker.AdvancedMarkerElement>>(new globalThis.Map())
+  const clustererRef = useRef<MarkerClusterer | null>(null)
 
   const fitAll = useCallback(() => {
     if (!map || mapped.length === 0) return
@@ -112,6 +115,49 @@ function MapContent({
     }
   }, [selected, map])
 
+  // Initialize clusterer
+  useEffect(() => {
+    if (!map) return
+    if (clustererRef.current) return
+
+    clustererRef.current = new MarkerClusterer({
+      map,
+      algorithm: new SuperClusterAlgorithm({ radius: 80 }),
+      renderer: {
+        render({ count, position }) {
+          const size = Math.min(24 + Math.log2(count) * 8, 56)
+          const div = document.createElement('div')
+          div.style.cssText = `
+            width: ${size}px; height: ${size}px; border-radius: 50%;
+            background: rgba(59,130,246,0.75); border: 2px solid rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            font: 600 ${Math.max(11, size * 0.35)}px system-ui, sans-serif;
+            color: #fff; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          `
+          div.textContent = String(count)
+          return new google.maps.marker.AdvancedMarkerElement({ position, content: div })
+        },
+      },
+    })
+  }, [map])
+
+  // Sync markers with clusterer
+  useEffect(() => {
+    if (!clustererRef.current) return
+    const currentMarkers = Array.from(markersRef.current.values())
+    clustererRef.current.clearMarkers()
+    clustererRef.current.addMarkers(currentMarkers)
+  }, [items, map])
+
+  // Cleanup clusterer on unmount
+  useEffect(() => {
+    return () => {
+      clustererRef.current?.clearMarkers()
+      clustererRef.current = null
+    }
+  }, [])
+
   return (
     <>
       {/* Item markers */}
@@ -125,6 +171,13 @@ function MapContent({
             onClick={() => onSelect(item)}
             title={item.name}
             zIndex={isSelected ? 100 : 1}
+            ref={(marker) => {
+              if (marker) {
+                markersRef.current.set(item.id, marker)
+              } else {
+                markersRef.current.delete(item.id)
+              }
+            }}
           >
             <div
               style={{
