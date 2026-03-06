@@ -175,23 +175,6 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
               Clear
             </button>
           )}
-          {nearMeState !== 'active' && (
-            <div className="flex items-center gap-0.5 bg-white/10 rounded-full p-0.5 flex-shrink-0">
-              {([['type', 'Type'], ['date', 'Date'], ['priority', 'Priority']] as [SortMode, string][]).map(([mode, label]) => (
-                <button
-                  key={mode}
-                  onClick={() => setSortMode(mode)}
-                  className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
-                    sortMode === mode
-                      ? 'bg-white/20 text-white font-medium'
-                      : 'text-white/50 hover:text-white/70'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Bottom row: filter chips */}
