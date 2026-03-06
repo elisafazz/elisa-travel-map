@@ -29,6 +29,16 @@ const STATUS_COLORS: Record<string, string> = {
   Cancelled:   '#ef4444',
 }
 
+const TYPE_COLORS: Record<string, string> = {
+  Hotel:        '#3B82F6',
+  Restaurant:   '#EF4444',
+  Activity:     '#10B981',
+  Flight:       '#8B5CF6',
+  Train:        '#F59E0B',
+  Ferry:        '#06B6D4',
+  'Car Rental': '#F97316',
+}
+
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number)
   return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -216,7 +226,12 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
           </div>
         )}
         {showDetail ? (
-          <div className="px-4 pb-8">
+          <div className="pb-8">
+            <div
+              className="h-3 rounded-b-sm mb-4"
+              style={{ background: TYPE_COLORS[selected!.type ?? ''] ?? '#6B7280' }}
+            />
+            <div className="px-4">
             {selected!.priority && (
               <div style={{
                 height: 3, borderRadius: 2, width: 32, marginBottom: 12,
@@ -298,7 +313,8 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
                 Notion
               </a>
             </div>
-          </div>
+          </div>  {/* closes px-4 wrapper */}
+        </div>
         ) : (
           <div className="pb-4">
             {items.length === 0 ? (
@@ -312,8 +328,9 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
                   <button
                     key={item.id}
                     onClick={() => onSelect(item)}
-                    className="w-full text-left px-4 py-3 border-b border-gray-50 flex items-center gap-3 active:bg-gray-50"
+                    className="w-full text-left px-3 mb-1.5"
                   >
+                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors">
                     <span className="text-base flex-shrink-0">{TYPE_EMOJIS[item.type ?? ''] ?? '📍'}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
@@ -330,6 +347,7 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
                           style={{ background: STATUS_COLORS[item.status] ?? '#9ca3af' }}
                         />
                       )}
+                    </div>
                     </div>
                   </button>
                 )
