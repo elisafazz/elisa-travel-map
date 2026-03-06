@@ -89,25 +89,30 @@ function MapContent({
 
   const fitAll = useCallback(() => {
     if (!map) return
-    // If we have a user location but no pins, center on user
-    if (mapped.length === 0 && userLocation) {
+    // If user location is available, center on it at walkable zoom
+    if (userLocation) {
       map.panTo(userLocation)
-      map.setZoom(14)
+      if (mapped.length === 0) {
+        map.setZoom(14)
+      } else {
+        // Fit to include user + nearby pins
+        const lats = mapped.map(i => i.coordinates!.lat).concat(userLocation.lat)
+        const lngs = mapped.map(i => i.coordinates!.lng).concat(userLocation.lng)
+        map.fitBounds(
+          { north: Math.max(...lats), south: Math.min(...lats), east: Math.max(...lngs), west: Math.min(...lngs) },
+          60
+        )
+      }
       return
     }
     if (mapped.length === 0) return
-    if (mapped.length === 1 && !userLocation) {
+    if (mapped.length === 1) {
       map.panTo(mapped[0].coordinates!)
       map.setZoom(14)
       return
     }
-    // Include user location in bounds if available
     const lats = mapped.map(i => i.coordinates!.lat)
     const lngs = mapped.map(i => i.coordinates!.lng)
-    if (userLocation) {
-      lats.push(userLocation.lat)
-      lngs.push(userLocation.lng)
-    }
     map.fitBounds(
       { north: Math.max(...lats), south: Math.min(...lats), east: Math.max(...lngs), west: Math.min(...lngs) },
       60

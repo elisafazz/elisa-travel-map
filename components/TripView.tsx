@@ -116,13 +116,17 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
     .filter(i => !selectedDate || i.date === selectedDate)
     .filter(i => !q || i.name.toLowerCase().includes(q) || i.venue.toLowerCase().includes(q))
 
+  const NEAR_ME_RADIUS_KM = 5
+
   const sorted = (() => {
     if (nearMeState === 'active' && userLocation) {
-      return [...filtered].sort((a, b) => {
-        const da = a.coordinates ? haversineKm(userLocation.lat, userLocation.lng, a.coordinates.lat, a.coordinates.lng) : Infinity
-        const db = b.coordinates ? haversineKm(userLocation.lat, userLocation.lng, b.coordinates.lat, b.coordinates.lng) : Infinity
-        return da - db
-      })
+      return [...filtered]
+        .filter(i => i.coordinates && haversineKm(userLocation.lat, userLocation.lng, i.coordinates.lat, i.coordinates.lng) <= NEAR_ME_RADIUS_KM)
+        .sort((a, b) => {
+          const da = a.coordinates ? haversineKm(userLocation.lat, userLocation.lng, a.coordinates.lat, a.coordinates.lng) : Infinity
+          const db = b.coordinates ? haversineKm(userLocation.lat, userLocation.lng, b.coordinates.lat, b.coordinates.lng) : Infinity
+          return da - db
+        })
     }
     switch (sortMode) {
       case 'date':
