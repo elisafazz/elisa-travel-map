@@ -80,8 +80,8 @@ function MapContent({
 }) {
   const map = useMap()
   const mapped = items.filter(i => i.coordinates)
-  const markersRef = useRef<globalThis.Map<string, google.maps.marker.AdvancedMarkerElement>>(new globalThis.Map())
   const clustererRef = useRef<MarkerClusterer | null>(null)
+  const imperativeMarkersRef = useRef<globalThis.Map<string, google.maps.marker.AdvancedMarkerElement>>(new globalThis.Map())
 
   const fitAll = useCallback(() => {
     if (!map || mapped.length === 0) return
@@ -126,7 +126,7 @@ function MapContent({
     }
   }, [fitKey, prevFitKey, fitAll])
 
-  // Initialize clusterer
+  // Initialize clusterer once
   useEffect(() => {
     if (!map) return
     if (clustererRef.current) return
@@ -153,66 +153,84 @@ function MapContent({
     })
   }, [map])
 
-  // Sync markers with clusterer
+  // Create imperative markers for the clusterer (separate from React markers)
   useEffect(() => {
-    if (!clustererRef.current) return
-    const currentMarkers = Array.from(markersRef.current.values())
-    clustererRef.current.clearMarkers()
-    clustererRef.current.addMarkers(currentMarkers)
-  }, [items, map])
+    if (!map || !clustererRef.current) return
 
-  // Cleanup clusterer on unmount
+    const currentIds = new Set(mapped.map(i => i.id))
+    const prev = imperativeMarkersRef.current
+
+    // Remove markers no longer in the set
+    for (const [id, marker] of prev) {
+      if (!currentIds.has(id)) {
+        clustererRef.current.removeMarker(marker)
+        marker.map = null
+        prev.delete(id)
+      }
+    }
+
+    // Add new markers
+    const newMarkers: google.maps.marker.AdvancedMarkerElement[] = []
+    for (const item of mapped) {
+      if (prev.has(item.id)) continue
+      const style = markerStyle(item.type)
+      const pin = document.createElement('div')
+      pin.style.cssText = `
+        background: ${style.bg}; border: 2px solid ${style.border};
+        border-radius: 50%; width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      `
+      pin.textContent = style.glyph
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: item.coordinates!,
+        content: pin,
+        title: item.name,
+      })
+      marker.addListener('gmp-click', () => onSelect(item))
+      prev.set(item.id, marker)
+      newMarkers.push(marker)
+    }
+    if (newMarkers.length > 0) {
+      clustererRef.current.addMarkers(newMarkers)
+    }
+  }, [map, mapped, onSelect])
+
+  // Highlight selected marker in clusterer
+  useEffect(() => {
+    for (const [id, marker] of imperativeMarkersRef.current) {
+      const el = marker.content as HTMLElement
+      if (!el) continue
+      const item = mapped.find(i => i.id === id)
+      if (!item) continue
+      const style = markerStyle(item.type)
+      const isSelected = selected?.id === id
+      el.style.border = `2px solid ${isSelected ? '#fff' : style.border}`
+      el.style.width = isSelected ? '38px' : '32px'
+      el.style.height = isSelected ? '38px' : '32px'
+      el.style.fontSize = isSelected ? '17px' : '14px'
+      el.style.boxShadow = isSelected
+        ? '0 0 0 3px rgba(59,130,246,0.5), 0 2px 8px rgba(0,0,0,0.4)'
+        : '0 2px 6px rgba(0,0,0,0.3)'
+      marker.zIndex = isSelected ? 100 : 1
+    }
+  }, [selected, mapped])
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clustererRef.current?.clearMarkers()
       clustererRef.current = null
+      for (const marker of imperativeMarkersRef.current.values()) {
+        marker.map = null
+      }
+      imperativeMarkersRef.current.clear()
     }
   }, [])
 
   return (
     <>
-      {/* Item markers */}
-      {mapped.map(item => {
-        const style = markerStyle(item.type)
-        const isSelected = selected?.id === item.id
-        return (
-          <AdvancedMarker
-            key={item.id}
-            position={item.coordinates!}
-            onClick={() => onSelect(item)}
-            title={item.name}
-            zIndex={isSelected ? 100 : 1}
-            ref={(marker) => {
-              if (marker) {
-                markersRef.current.set(item.id, marker)
-              } else {
-                markersRef.current.delete(item.id)
-              }
-            }}
-          >
-            <div
-              style={{
-                background: style.bg,
-                border: `2px solid ${isSelected ? '#fff' : style.border}`,
-                borderRadius: '50%',
-                width: isSelected ? 38 : 32,
-                height: isSelected ? 38 : 32,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: isSelected ? 17 : 14,
-                cursor: 'pointer',
-                boxShadow: isSelected
-                  ? '0 0 0 3px rgba(59,130,246,0.5), 0 2px 8px rgba(0,0,0,0.4)'
-                  : '0 2px 6px rgba(0,0,0,0.3)',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {style.glyph}
-            </div>
-          </AdvancedMarker>
-        )
-      })}
 
       {/* User location dot */}
       {userLocation && (
