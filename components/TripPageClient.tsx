@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import TripView from './TripView'
+import OfflineIndicator from './OfflineIndicator'
 import type { Trip, TripItem } from '@/lib/types'
 
 interface Props {
@@ -19,6 +20,7 @@ export default function TripPageClient({ trip, items, apiKey, mappedCount, unmap
 
   return (
     <div className="flex h-screen flex-col">
+      <OfflineIndicator />
       {!fullscreen && (
         <header className="flex items-center gap-4 px-6 py-3 bg-white border-b border-gray-100 shadow-sm z-20">
           <Link href="/" className="text-gray-400 hover:text-gray-700 text-sm">← All trips</Link>
