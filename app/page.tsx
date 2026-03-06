@@ -33,7 +33,7 @@ export default async function Home() {
 
   return (
     <main className="h-screen flex flex-col bg-gray-950">
-      <div className="flex-shrink-0 px-8 pt-12 pb-8">
+      <div className="flex-shrink-0 px-8 pt-12 pb-8" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top, 0px) + 1rem)' }}>
         <h1 className="text-4xl font-bold text-white tracking-tight">Trip Maps</h1>
         <p className="text-white/40 mt-1 text-sm">{trips.length} trip{trips.length !== 1 ? 's' : ''}</p>
       </div>

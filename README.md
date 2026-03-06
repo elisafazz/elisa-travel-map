@@ -22,6 +22,10 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `3:00pm` **iOS status bar blends with page** - Cathy
+  - Status bar now uses black-translucent style so page background extends behind it
+  - Safe area insets respected on home page and trip header
+
 - `2:45pm` **Fix date chips invisible in bottom sheet** - Cathy
   - DayTimeline now has light/dark variants - light for white bottom sheet, dark for toolbar
 
