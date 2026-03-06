@@ -22,6 +22,9 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `2:30pm` **Map centers on date-filtered pins** - Cathy
+  - Selecting a date now auto-fits the map to show only that day's markers
+
 - `2:15pm` **Remove sort picker from toolbar** - Cathy
   - Removed Type/Date/Priority segmented control from map view search bar
 

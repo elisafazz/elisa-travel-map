@@ -145,7 +145,10 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   })()
 
   const displayItems = sorted
-  const fitKey = activeLegs.size > 0 ? Array.from(activeLegs).sort().join(',') : 'all'
+  const fitKey = [
+    activeLegs.size > 0 ? Array.from(activeLegs).sort().join(',') : 'all',
+    selectedDate ?? 'nodate',
+  ].join('|')
 
   const nearMeLabel =
     nearMeState === 'loading' ? '…' :
