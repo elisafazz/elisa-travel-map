@@ -82,6 +82,8 @@ function MapContent({
   const mapped = items.filter(i => i.coordinates)
   const clustererRef = useRef<MarkerClusterer | null>(null)
   const imperativeMarkersRef = useRef<globalThis.Map<string, google.maps.marker.AdvancedMarkerElement>>(new globalThis.Map())
+  const onSelectRef = useRef(onSelect)
+  onSelectRef.current = onSelect
 
   const fitAll = useCallback(() => {
     if (!map || mapped.length === 0) return
@@ -157,7 +159,8 @@ function MapContent({
   useEffect(() => {
     if (!map || !clustererRef.current) return
 
-    const currentIds = new Set(mapped.map(i => i.id))
+    const withCoords = items.filter(i => i.coordinates)
+    const currentIds = new Set(withCoords.map(i => i.id))
     const prev = imperativeMarkersRef.current
 
     // Remove markers no longer in the set
@@ -171,7 +174,7 @@ function MapContent({
 
     // Add new markers
     const newMarkers: google.maps.marker.AdvancedMarkerElement[] = []
-    for (const item of mapped) {
+    for (const item of withCoords) {
       if (prev.has(item.id)) continue
       const style = markerStyle(item.type)
       const pin = document.createElement('div')
@@ -188,21 +191,21 @@ function MapContent({
         content: pin,
         title: item.name,
       })
-      marker.addListener('gmp-click', () => onSelect(item))
+      marker.addListener('gmp-click', () => onSelectRef.current(item))
       prev.set(item.id, marker)
       newMarkers.push(marker)
     }
     if (newMarkers.length > 0) {
       clustererRef.current.addMarkers(newMarkers)
     }
-  }, [map, mapped, onSelect])
+  }, [map, items])
 
   // Highlight selected marker in clusterer
   useEffect(() => {
     for (const [id, marker] of imperativeMarkersRef.current) {
       const el = marker.content as HTMLElement
       if (!el) continue
-      const item = mapped.find(i => i.id === id)
+      const item = items.find(i => i.id === id)
       if (!item) continue
       const style = markerStyle(item.type)
       const isSelected = selected?.id === id
@@ -215,7 +218,7 @@ function MapContent({
         : '0 2px 6px rgba(0,0,0,0.3)'
       marker.zIndex = isSelected ? 100 : 1
     }
-  }, [selected, mapped])
+  }, [selected, items])
 
   // Cleanup on unmount
   useEffect(() => {
