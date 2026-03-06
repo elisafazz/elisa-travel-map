@@ -17,9 +17,10 @@ interface Props {
   selectedDate: string | null
   onSelectDate: (date: string | null) => void
   className?: string
+  variant?: 'dark' | 'light'
 }
 
-export default function DayTimeline({ dates, selectedDate, onSelectDate, className = '' }: Props) {
+export default function DayTimeline({ dates, selectedDate, onSelectDate, className = '', variant = 'dark' }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const todayRef = useRef<HTMLButtonElement>(null)
   const today = getTodayStr()
@@ -47,7 +48,13 @@ export default function DayTimeline({ dates, selectedDate, onSelectDate, classNa
             ref={isToday ? todayRef : undefined}
             onClick={() => onSelectDate(isSelected ? null : date)}
             className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors relative ${
-              isSelected
+              variant === 'light'
+                ? isSelected
+                  ? 'bg-gray-900 border-gray-900 text-white'
+                  : isToday
+                  ? 'bg-blue-50 border-blue-300 text-blue-700'
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                : isSelected
                 ? 'bg-white text-gray-900 border-white'
                 : isToday
                 ? 'bg-blue-500/20 border-blue-400/40 text-blue-300'

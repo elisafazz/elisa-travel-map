@@ -222,7 +222,7 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
       <div data-content className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 52px)', touchAction: 'pan-y' }}>
         {!showDetail && dates && dates.length > 0 && onSelectDate && (
           <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
-            <DayTimeline dates={dates} selectedDate={selectedDate ?? null} onSelectDate={onSelectDate} />
+            <DayTimeline dates={dates} selectedDate={selectedDate ?? null} onSelectDate={onSelectDate} variant="light" />
           </div>
         )}
         {showDetail ? (

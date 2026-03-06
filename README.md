@@ -22,6 +22,9 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `2:45pm` **Fix date chips invisible in bottom sheet** - Cathy
+  - DayTimeline now has light/dark variants - light for white bottom sheet, dark for toolbar
+
 - `2:30pm` **Map centers on date-filtered pins** - Cathy
   - Selecting a date now auto-fits the map to show only that day's markers
 
