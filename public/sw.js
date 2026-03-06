@@ -27,7 +27,26 @@ self.addEventListener('fetch', event => {
   const { request } = event
   const url = new URL(request.url)
 
-  if (request.method !== 'GET' || url.origin !== location.origin) return
+  if (request.method !== 'GET') return
+
+  // External images (Notion covers, etc.) - cache-first
+  if (url.origin !== location.origin) {
+    if (request.destination === 'image' || url.hostname.includes('notion') || url.hostname.includes('amazonaws.com')) {
+      event.respondWith(
+        caches.match(request).then(cached => {
+          if (cached) return cached
+          return fetch(request).then(response => {
+            if (response.ok) {
+              const clone = response.clone()
+              caches.open(CACHE).then(cache => cache.put(request, clone))
+            }
+            return response
+          }).catch(() => new Response('', { status: 408 }))
+        })
+      )
+    }
+    return
+  }
 
   // /_next/static/ - immutable assets, cache-first
   if (url.pathname.startsWith('/_next/static/')) {

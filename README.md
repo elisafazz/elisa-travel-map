@@ -22,8 +22,9 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
-- `3:50pm` **Fix status bar color on map view** - Cathy
-  - Safe area now uses solid `gray-800` matching the header instead of dark body bleed-through
+- `4:00pm` **Cache cover images + fix status bar** - Cathy
+  - Service worker now caches Notion cover images (cache-first) so they load instantly on repeat visits
+  - iOS status bar uses solid black instead of translucent - consistent across home and map pages
 
 - `3:30pm` **Near Me shows only nearby pins** - Cathy
   - Filters to pins within 5km of your location and centers map on you

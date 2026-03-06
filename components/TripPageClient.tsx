@@ -23,8 +23,6 @@ export default function TripPageClient({ trip, items, apiKey, mappedCount, unmap
       <OfflineIndicator />
       {!fullscreen && (
         <>
-          {/* Safe area fill - matches header color */}
-          <div className="flex-shrink-0 bg-gray-800" style={{ height: 'env(safe-area-inset-top, 0px)' }} />
           <header className="flex items-center gap-4 px-6 py-3 bg-gray-800 border-b border-white/10 z-20">
             <Link href="/" className="text-white/50 hover:text-white text-sm transition-colors">← All trips</Link>
             <div className="flex-1">
