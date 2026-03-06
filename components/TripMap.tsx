@@ -88,19 +88,31 @@ function MapContent({
   onSelectRef.current = onSelect
 
   const fitAll = useCallback(() => {
-    if (!map || mapped.length === 0) return
-    if (mapped.length === 1) {
+    if (!map) return
+    // If we have a user location but no pins, center on user
+    if (mapped.length === 0 && userLocation) {
+      map.panTo(userLocation)
+      map.setZoom(14)
+      return
+    }
+    if (mapped.length === 0) return
+    if (mapped.length === 1 && !userLocation) {
       map.panTo(mapped[0].coordinates!)
       map.setZoom(14)
       return
     }
+    // Include user location in bounds if available
     const lats = mapped.map(i => i.coordinates!.lat)
     const lngs = mapped.map(i => i.coordinates!.lng)
+    if (userLocation) {
+      lats.push(userLocation.lat)
+      lngs.push(userLocation.lng)
+    }
     map.fitBounds(
       { north: Math.max(...lats), south: Math.min(...lats), east: Math.max(...lngs), west: Math.min(...lngs) },
       60
     )
-  }, [map, mapped])
+  }, [map, mapped, userLocation])
 
   // Fit map to all pins on initial load
   useEffect(() => {

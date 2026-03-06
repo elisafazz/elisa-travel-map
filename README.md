@@ -22,6 +22,10 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `3:20pm` **Near Me centers map on your location** - Cathy
+  - Tapping Near Me now fits the map to show both your location and nearby pins
+  - Map includes user location in bounds calculation when active
+
 - `3:10pm` **Fix status bar color mismatch on map view** - Cathy
   - Trip page wrapper now uses `bg-gray-900` to match the header instead of inheriting `bg-gray-950` from body
 
