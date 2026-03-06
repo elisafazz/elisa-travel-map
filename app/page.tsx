@@ -32,13 +32,13 @@ export default async function Home() {
   const sorted = [...trips].sort((a, b) => (ORDER[a.status ?? ''] ?? 9) - (ORDER[b.status ?? ''] ?? 9))
 
   return (
-    <main className="min-h-screen bg-gray-950">
-      <div className="px-8 pt-12 pb-8">
+    <main className="h-screen flex flex-col bg-gray-950">
+      <div className="flex-shrink-0 px-8 pt-12 pb-8">
         <h1 className="text-4xl font-bold text-white tracking-tight">Trip Maps</h1>
         <p className="text-white/40 mt-1 text-sm">{trips.length} trip{trips.length !== 1 ? 's' : ''}</p>
       </div>
 
-      <div className="px-8 pb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex-1 overflow-y-auto px-8 pb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 content-start">
         {sorted.map((trip: Trip, i: number) => {
           const gradient = GRADIENTS[i % GRADIENTS.length]
           const dateRange = formatDateRange(trip.departureDate, trip.returnDate)
