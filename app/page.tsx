@@ -38,7 +38,8 @@ export default async function Home() {
         <p className="text-white/40 mt-1 text-sm">{trips.length} trip{trips.length !== 1 ? 's' : ''}</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-8 pb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 content-start">
+      <div className="flex-1 overflow-y-auto">
+      <div className="px-8 pb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {sorted.map((trip: Trip, i: number) => {
           const gradient = GRADIENTS[i % GRADIENTS.length]
           const dateRange = formatDateRange(trip.departureDate, trip.returnDate)
@@ -94,6 +95,7 @@ export default async function Home() {
         {trips.length === 0 && (
           <p className="text-gray-500 text-sm col-span-full">No trips found in Notion.</p>
         )}
+      </div>
       </div>
     </main>
   )
