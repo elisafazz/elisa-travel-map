@@ -11,10 +11,10 @@ import type { TripItem, ItemStatus, ItemType } from '@/lib/types'
 import type { UserLocation } from '@/lib/geo'
 
 const STATUSES: { value: ItemStatus; label: string; color: string; active: string }[] = [
-  { value: 'Confirmed',   label: 'Confirmed',   color: 'border-green-300 text-green-700',   active: 'bg-green-500 border-green-500 text-white' },
-  { value: 'Shortlisted', label: 'Shortlisted', color: 'border-yellow-300 text-yellow-700', active: 'bg-yellow-400 border-yellow-400 text-white' },
-  { value: 'Researching', label: 'Researching', color: 'border-gray-300 text-gray-600',     active: 'bg-gray-500 border-gray-500 text-white' },
-  { value: 'Cancelled',   label: 'Cancelled',   color: 'border-red-300 text-red-500',       active: 'bg-red-500 border-red-500 text-white' },
+  { value: 'Confirmed',   label: 'Confirmed',   color: 'border-green-500/30 text-green-400',   active: 'bg-green-500 border-green-500 text-white shadow-[0_0_8px_rgba(34,197,94,0.4)]' },
+  { value: 'Shortlisted', label: 'Shortlisted', color: 'border-yellow-500/30 text-yellow-400', active: 'bg-yellow-500 border-yellow-500 text-white shadow-[0_0_8px_rgba(234,179,8,0.4)]' },
+  { value: 'Researching', label: 'Researching', color: 'border-white/15 text-white/50',        active: 'bg-white/20 border-white/30 text-white' },
+  { value: 'Cancelled',   label: 'Cancelled',   color: 'border-red-500/30 text-red-400',       active: 'bg-red-500 border-red-500 text-white shadow-[0_0_8px_rgba(239,68,68,0.4)]' },
 ]
 
 type SortMode = 'type' | 'date' | 'priority'
@@ -156,118 +156,120 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   return (
     <div className="flex flex-1 overflow-hidden flex-col">
 
-      {/* Search bar */}
-      <div className={`flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-50 ${fullscreen ? 'hidden' : ''}`}>
-        <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">🔍</span>
-          <input
-            type="search"
-            placeholder="Search items…"
-            value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); setSelected(null) }}
-            className="w-full text-sm pl-8 pr-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
-          />
-        </div>
-        {searchQuery && (
-          <button onClick={() => setSearchQuery('')} className="text-xs text-gray-400 hover:text-gray-600">
-            Clear
-          </button>
-        )}
-        {nearMeState !== 'active' && (
-          <div className="flex items-center gap-0.5 bg-gray-100 rounded-full p-0.5 flex-shrink-0">
-            {([['type', 'Type'], ['date', 'Date'], ['priority', 'Priority']] as [SortMode, string][]).map(([mode, label]) => (
-              <button
-                key={mode}
-                onClick={() => setSortMode(mode)}
-                className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
-                  sortMode === mode
-                    ? 'bg-white text-gray-900 shadow-sm font-medium'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+      {/* Unified toolbar */}
+      <div className={`bg-gray-900/80 backdrop-blur-xl border-b border-white/10 ${fullscreen ? 'hidden' : ''}`}>
+        {/* Top row: search + sort */}
+        <div className="flex items-center gap-2 px-4 py-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm pointer-events-none">🔍</span>
+            <input
+              type="search"
+              placeholder="Search items..."
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setSelected(null) }}
+              className="w-full text-sm pl-8 pr-3 py-1.5 rounded-full border border-white/15 bg-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-white/30 focus:bg-white/15 transition-colors"
+            />
           </div>
-        )}
-      </div>
-
-      {/* Filter bar - single scrollable row */}
-      <div
-        className={`flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-100 overflow-x-auto flex-nowrap ${fullscreen ? 'hidden' : ''}`}
-        style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-      >
-        {/* Near me */}
-        <button
-          onClick={requestNearMe}
-          disabled={nearMeState === 'loading'}
-          className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
-            nearMeState === 'active'
-              ? 'bg-blue-500 border-blue-500 text-white'
-              : nearMeState === 'error'
-              ? 'border-red-300 text-red-400 bg-white'
-              : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50'
-          }`}
-        >
-          {nearMeLabel}
-        </button>
-
-        <span className="flex-shrink-0 text-xs text-gray-400 font-medium">Status:</span>
-        {STATUSES.map(s => {
-          const isActive = activeFilters.has(s.value)
-          return (
-            <button
-              key={s.value}
-              onClick={() => toggleFilter(s.value)}
-              className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
-                isActive ? s.active : s.color + ' bg-white hover:bg-gray-50'
-              }`}
-            >
-              {s.label}
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="text-xs text-white/40 hover:text-white/70">
+              Clear
             </button>
-          )
-        })}
-        {activeFilters.size > 0 && (
-          <button
-            onClick={() => { setActiveFilters(new Set()); setSelected(null) }}
-            className="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600 underline"
-          >
-            Clear
-          </button>
-        )}
-
-        {legs.length > 1 && (
-          <>
-            <span className="flex-shrink-0 text-gray-200 mx-1">|</span>
-            <span className="flex-shrink-0 text-xs text-gray-400 font-medium">{legLabel}:</span>
-            {legs.map(city => {
-              const isActive = activeLegs.has(city)
-              return (
+          )}
+          {nearMeState !== 'active' && (
+            <div className="flex items-center gap-0.5 bg-white/10 rounded-full p-0.5 flex-shrink-0">
+              {([['type', 'Type'], ['date', 'Date'], ['priority', 'Priority']] as [SortMode, string][]).map(([mode, label]) => (
                 <button
-                  key={city}
-                  onClick={() => toggleLeg(city)}
-                  className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
-                    isActive
-                      ? 'bg-indigo-500 border-indigo-500 text-white'
-                      : 'border-indigo-200 text-indigo-600 bg-white hover:bg-indigo-50'
+                  key={mode}
+                  onClick={() => setSortMode(mode)}
+                  className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
+                    sortMode === mode
+                      ? 'bg-white/20 text-white font-medium'
+                      : 'text-white/50 hover:text-white/70'
                   }`}
                 >
-                  {city}
+                  {label}
                 </button>
-              )
-            })}
-            {activeLegs.size > 0 && (
-              <button
-                onClick={() => { setActiveLegs(new Set()); setSelected(null) }}
-                className="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600 underline"
-              >
-                Clear
-              </button>
-            )}
-          </>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
 
-        <span className="flex-shrink-0 text-xs text-gray-300 pl-3">{displayItems.length} items</span>
+        {/* Bottom row: filter chips */}
+        <div
+          className="flex items-center gap-2 px-4 py-2 overflow-x-auto flex-nowrap border-t border-white/5"
+          style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+        >
+          <button
+            onClick={requestNearMe}
+            disabled={nearMeState === 'loading'}
+            className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-all ${
+              nearMeState === 'active'
+                ? 'bg-blue-500 border-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.4)]'
+                : nearMeState === 'error'
+                ? 'border-red-500/30 text-red-400 bg-transparent'
+                : 'border-white/15 text-white/50 bg-transparent hover:bg-white/5 disabled:opacity-50'
+            }`}
+          >
+            {nearMeLabel}
+          </button>
+
+          <span className="flex-shrink-0 text-xs text-white/30 font-medium">Status:</span>
+          {STATUSES.map(s => {
+            const isActive = activeFilters.has(s.value)
+            return (
+              <button
+                key={s.value}
+                onClick={() => toggleFilter(s.value)}
+                className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-all ${
+                  isActive ? s.active : s.color + ' bg-transparent hover:bg-white/5'
+                }`}
+              >
+                {s.label}
+              </button>
+            )
+          })}
+          {activeFilters.size > 0 && (
+            <button
+              onClick={() => { setActiveFilters(new Set()); setSelected(null) }}
+              className="flex-shrink-0 text-xs text-white/40 hover:text-white/70 underline"
+            >
+              Clear
+            </button>
+          )}
+
+          {legs.length > 1 && (
+            <>
+              <span className="flex-shrink-0 text-white/10 mx-1">|</span>
+              <span className="flex-shrink-0 text-xs text-white/30 font-medium">{legLabel}:</span>
+              {legs.map(city => {
+                const isActive = activeLegs.has(city)
+                return (
+                  <button
+                    key={city}
+                    onClick={() => toggleLeg(city)}
+                    className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_8px_rgba(99,102,241,0.4)]'
+                        : 'border-indigo-400/30 text-indigo-300 bg-transparent hover:bg-white/5'
+                    }`}
+                  >
+                    {city}
+                  </button>
+                )
+              })}
+              {activeLegs.size > 0 && (
+                <button
+                  onClick={() => { setActiveLegs(new Set()); setSelected(null) }}
+                  className="flex-shrink-0 text-xs text-white/40 hover:text-white/70 underline"
+                >
+                  Clear
+                </button>
+              )}
+            </>
+          )}
+
+          <span className="flex-shrink-0 text-xs text-white/30 pl-3">{displayItems.length} items</span>
+        </div>
       </div>
 
       {allDates.length > 0 && (
@@ -275,7 +277,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
           dates={allDates}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
-          className={`border-b border-gray-100 bg-white ${fullscreen ? 'hidden' : 'hidden md:flex'}`}
+          className={`border-b border-white/10 bg-gray-900/80 backdrop-blur-xl ${fullscreen ? 'hidden' : 'hidden md:flex'}`}
         />
       )}
 
@@ -302,7 +304,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
           <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
           <button
             onClick={() => { recenterRef.current?.(); setSelected(null) }}
-            className="absolute top-4 right-16 z-10 bg-white rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="absolute top-4 right-16 z-10 bg-gray-900/80 backdrop-blur-md rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors border border-white/10"
             title="Show all pins"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -313,7 +315,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
           </button>
           <button
             onClick={toggleFullscreen}
-            className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="absolute top-4 right-4 z-10 bg-gray-900/80 backdrop-blur-md rounded-lg shadow-lg w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors border border-white/10"
             title={fullscreen ? 'Exit fullscreen' : 'Fullscreen map'}
           >
             {fullscreen ? (
