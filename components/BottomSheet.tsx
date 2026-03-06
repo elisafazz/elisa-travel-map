@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { mapsUrl, haversineKm, formatDistance } from '@/lib/geo'
+import DayTimeline from './DayTimeline'
 import type { TripItem } from '@/lib/types'
 import type { UserLocation } from '@/lib/geo'
 
@@ -39,9 +40,12 @@ interface Props {
   onSelect: (item: TripItem | null) => void
   userLocation?: UserLocation | null
   searchActive?: boolean
+  dates?: string[]
+  selectedDate?: string | null
+  onSelectDate?: (date: string | null) => void
 }
 
-export default function BottomSheet({ items, selected, onSelect, userLocation, searchActive }: Props) {
+export default function BottomSheet({ items, selected, onSelect, userLocation, searchActive, dates, selectedDate, onSelectDate }: Props) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [dragOffset, setDragOffset] = useState<number | null>(null)
@@ -206,6 +210,11 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
 
       {/* Content */}
       <div data-content className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 52px)', touchAction: 'pan-y' }}>
+        {!showDetail && dates && dates.length > 0 && onSelectDate && (
+          <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
+            <DayTimeline dates={dates} selectedDate={selectedDate ?? null} onSelectDate={onSelectDate} />
+          </div>
+        )}
         {showDetail ? (
           <div className="px-4 pb-8">
             {selected!.priority && (

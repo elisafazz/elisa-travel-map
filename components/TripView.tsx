@@ -5,6 +5,7 @@ import TripMap from './TripMap'
 import Sidebar from './Sidebar'
 import Legend from './Legend'
 import BottomSheet from './BottomSheet'
+import DayTimeline from './DayTimeline'
 import { haversineKm } from '@/lib/geo'
 import type { TripItem, ItemStatus, ItemType } from '@/lib/types'
 import type { UserLocation } from '@/lib/geo'
@@ -22,11 +23,6 @@ const PRIORITY_ORDER: Record<string, number> = { Must: 0, High: 1, Optional: 2 }
 
 type NearMeState = 'idle' | 'loading' | 'active' | 'error'
 
-function getTodayStr(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 interface Props {
   items: TripItem[]
   apiKey: string
@@ -41,7 +37,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   const [activeTypes, setActiveTypes] = useState<Set<ItemType>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [sortMode, setSortMode] = useState<SortMode>('type')
-  const [todayOnly, setTodayOnly] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [nearMeState, setNearMeState] = useState<NearMeState>('idle')
   const [fullscreen, setFullscreen] = useState(false)
@@ -57,7 +53,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   }
 
   const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
-  const today = getTodayStr()
+  const allDates = Array.from(new Set(items.map(i => i.date).filter((d): d is string => !!d))).sort()
 
   function toggleFilter(status: ItemStatus) {
     setActiveFilters(prev => {
@@ -117,7 +113,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
     .filter(i => activeFilters.size === 0 || (i.status && activeFilters.has(i.status)))
     .filter(i => activeLegs.size === 0 || activeLegs.has(i.legCity))
     .filter(i => activeTypes.size === 0 || (i.type && activeTypes.has(i.type)))
-    .filter(i => !todayOnly || i.date === today)
+    .filter(i => !selectedDate || i.date === selectedDate)
     .filter(i => !q || i.name.toLowerCase().includes(q) || i.venue.toLowerCase().includes(q))
 
   const sorted = (() => {
@@ -215,20 +211,6 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
           {nearMeLabel}
         </button>
 
-        {/* Today */}
-        <button
-          onClick={() => { setTodayOnly(t => !t); setSelected(null) }}
-          className={`flex-shrink-0 text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
-            todayOnly
-              ? 'bg-violet-500 border-violet-500 text-white'
-              : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50'
-          }`}
-        >
-          Today
-        </button>
-
-        <span className="flex-shrink-0 text-gray-200">|</span>
-
         <span className="flex-shrink-0 text-xs text-gray-400 font-medium">Status:</span>
         {STATUSES.map(s => {
           const isActive = activeFilters.has(s.value)
@@ -287,6 +269,15 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
         <span className="flex-shrink-0 text-xs text-gray-300 pl-3">{displayItems.length} items</span>
       </div>
 
+      {allDates.length > 0 && (
+        <DayTimeline
+          dates={allDates}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          className={`border-b border-gray-100 bg-white ${fullscreen ? 'hidden' : 'hidden md:flex'}`}
+        />
+      )}
+
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
@@ -344,6 +335,9 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
         onSelect={setSelected}
         userLocation={userLocation}
         searchActive={!!q}
+        dates={allDates}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
       />}
     </div>
   )
