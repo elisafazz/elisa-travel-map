@@ -22,6 +22,9 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `3:10pm` **Fix status bar color mismatch on map view** - Cathy
+  - Trip page wrapper now uses `bg-gray-900` to match the header instead of inheriting `bg-gray-950` from body
+
 - `3:00pm` **iOS status bar blends with page** - Cathy
   - Status bar now uses black-translucent style so page background extends behind it
   - Safe area insets respected on home page and trip header

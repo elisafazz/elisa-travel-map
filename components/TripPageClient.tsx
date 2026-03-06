@@ -19,7 +19,7 @@ export default function TripPageClient({ trip, items, apiKey, mappedCount, unmap
   const [fullscreen, setFullscreen] = useState(false)
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col bg-gray-900">
       <OfflineIndicator />
       {!fullscreen && (
         <header className="flex items-center gap-4 px-6 py-3 bg-gray-900/90 backdrop-blur-xl border-b border-white/10 z-20" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))' }}>
