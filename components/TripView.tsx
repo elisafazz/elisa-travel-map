@@ -165,7 +165,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
     <div className="flex flex-1 overflow-hidden flex-col">
 
       {/* Unified toolbar */}
-      <div className={`bg-gray-900/80 backdrop-blur-xl border-b border-white/10 ${fullscreen ? 'hidden' : ''}`}>
+      <div className={`bg-gray-800 border-b border-white/10 ${fullscreen ? 'hidden' : ''}`}>
         {/* Top row: search + sort */}
         <div className="flex items-center gap-2 px-4 py-2">
           <div className="relative flex-1">
@@ -268,7 +268,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
           dates={allDates}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
-          className={`border-b border-white/10 bg-gray-900/80 backdrop-blur-xl ${fullscreen ? 'hidden' : 'hidden md:flex'}`}
+          className={`border-b border-white/10 bg-gray-800 ${fullscreen ? 'hidden' : 'hidden md:flex'}`}
         />
       )}
 
