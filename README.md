@@ -48,7 +48,8 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
   - Amber "You're offline" banner appears when connection is lost
 
 - **UI redesign - rich/immersive dark theme** - Cathy
-  - Home page: trip cards now show Notion cover images with gradient overlay, 3:2 aspect ratio, frosted glass status badges, photo zoom on hover. Header pinned at top with scrollable card grid.
+  - Home page: trip cards now show Notion cover images with gradient overlay, 3:2 aspect ratio, frosted glass status badges, photo zoom on hover
+  - Home page: header pinned at top, trip cards scroll independently
   - Trip view: dark glass-morphism toolbar, header, sidebar, legend, and map buttons - the map is the hero, chrome floats over it
   - Sidebar: dark background with colored accent bars per type group
   - Day timeline: dark chips with pulsing blue today dot
