@@ -7,6 +7,7 @@ import {
   AdvancedMarker,
   InfoWindow,
   useMap,
+  useMapsLibrary,
 } from '@vis.gl/react-google-maps'
 import { MarkerClusterer, SuperClusterAlgorithm } from '@googlemaps/markerclusterer'
 import { mapsUrl, haversineKm, formatDistance } from '@/lib/geo'
@@ -79,6 +80,7 @@ function MapContent({
   fitKey?: string
 }) {
   const map = useMap()
+  const markerLib = useMapsLibrary('marker')
   const mapped = items.filter(i => i.coordinates)
   const clustererRef = useRef<MarkerClusterer | null>(null)
   const imperativeMarkersRef = useRef<globalThis.Map<string, google.maps.marker.AdvancedMarkerElement>>(new globalThis.Map())
@@ -130,7 +132,7 @@ function MapContent({
 
   // Initialize clusterer once
   useEffect(() => {
-    if (!map) return
+    if (!map || !markerLib) return
     if (clustererRef.current) return
 
     clustererRef.current = new MarkerClusterer({
@@ -153,11 +155,11 @@ function MapContent({
         },
       },
     })
-  }, [map])
+  }, [map, markerLib])
 
   // Create imperative markers for the clusterer (separate from React markers)
   useEffect(() => {
-    if (!map || !clustererRef.current) return
+    if (!map || !markerLib || !clustererRef.current) return
 
     const withCoords = items.filter(i => i.coordinates)
     const currentIds = new Set(withCoords.map(i => i.id))
@@ -198,7 +200,7 @@ function MapContent({
     if (newMarkers.length > 0) {
       clustererRef.current.addMarkers(newMarkers)
     }
-  }, [map, items])
+  }, [map, markerLib, items])
 
   // Highlight selected marker in clusterer
   useEffect(() => {
