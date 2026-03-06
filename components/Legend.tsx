@@ -21,8 +21,8 @@ interface Props {
 export default function Legend({ activeTypes, onToggle, onClear }: Props) {
   const anyActive = activeTypes.size > 0
   return (
-    <div className="absolute bottom-20 md:bottom-8 left-4 bg-white rounded-xl shadow-lg px-4 py-3 flex flex-col gap-1.5 z-10">
-      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-0.5">Filter type</p>
+    <div className="absolute bottom-20 md:bottom-8 left-4 bg-gray-900/80 backdrop-blur-xl rounded-xl shadow-lg px-3 py-2.5 flex flex-col gap-1 z-10 border border-white/10">
+      <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wide mb-0.5">Filter type</p>
       {LEGEND.map(({ label, color, glyph }) => {
         const isActive = activeTypes.has(label)
         const dimmed = anyActive && !isActive
@@ -42,14 +42,14 @@ export default function Legend({ activeTypes, onToggle, onClear }: Props) {
             >
               {glyph}
             </div>
-            <span className={`font-medium ${isActive ? 'text-gray-900' : 'text-gray-700'}`}>{label}</span>
+            <span className={`font-medium ${isActive ? 'text-white' : 'text-white/70'}`}>{label}</span>
           </button>
         )
       })}
       {anyActive && (
         <button
           onClick={onClear}
-          className="text-[10px] text-gray-400 hover:text-gray-600 underline mt-1 text-left"
+          className="text-[10px] text-white/40 hover:text-white/70 underline mt-1 text-left"
         >
           Clear
         </button>
