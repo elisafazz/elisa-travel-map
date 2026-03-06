@@ -22,40 +22,42 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
-- **Marker clustering** - Cathy
-  - Dense pin areas now group into blue cluster circles showing counts
-  - Zoom in to break clusters apart into individual pins
-  - Uses imperative markers with `@googlemaps/markerclusterer` to avoid conflicts with React-managed markers
+- `2:15pm` **Remove sort picker from toolbar** - Cathy
+  - Removed Type/Date/Priority segmented control from map view search bar
 
-- **Sort options** - Cathy
-  - Segmented picker in the search bar: Type, Date, Priority
-  - Hidden when near-me is active (distance sort takes priority)
-  - Sidebar renders a flat list when sorting by date or priority
-
-- **Day-by-day timeline** - Cathy
-  - Scrollable date chip bar replaces the old Today button
-  - Tap a date to filter map + list to that day, tap again to clear
-  - Today's date gets a blue accent dot
-  - Shows on desktop above sidebar and inside mobile bottom sheet
-
-- **Leg-based auto-bounds** - Cathy
-  - Map automatically zooms to fit pins when you toggle a leg/city filter
-  - Clears back to all pins when filter is removed
-
-- **Offline support upgrade** - Cathy
-  - Service worker now uses stale-while-revalidate for API routes
-  - App shell (home, manifest, icons) pre-cached on install
-  - Amber "You're offline" banner appears when connection is lost
-
-- **UI redesign - rich/immersive dark theme** - Cathy
+- `2:05pm` **UI redesign - rich/immersive dark theme** - Cathy
   - Home page: trip cards now show Notion cover images with gradient overlay, 3:2 aspect ratio, frosted glass status badges, photo zoom on hover
   - Home page: header pinned at top, trip cards scroll independently
-  - Removed sort picker (Type/Date/Priority) from map view toolbar
   - Trip view: dark glass-morphism toolbar, header, sidebar, legend, and map buttons - the map is the hero, chrome floats over it
   - Sidebar: dark background with colored accent bars per type group
   - Day timeline: dark chips with pulsing blue today dot
   - Bottom sheet: card-style list items with rounded corners, colored type header strip on detail view
   - Filter chips glow when active
+
+- `11:30am` **Offline support upgrade** - Cathy
+  - Service worker now uses stale-while-revalidate for API routes
+  - App shell (home, manifest, icons) pre-cached on install
+  - Amber "You're offline" banner appears when connection is lost
+
+- `11:20am` **Leg-based auto-bounds** - Cathy
+  - Map automatically zooms to fit pins when you toggle a leg/city filter
+  - Clears back to all pins when filter is removed
+
+- `11:00am` **Day-by-day timeline** - Cathy
+  - Scrollable date chip bar replaces the old Today button
+  - Tap a date to filter map + list to that day, tap again to clear
+  - Today's date gets a blue accent dot
+  - Shows on desktop above sidebar and inside mobile bottom sheet
+
+- `10:40am` **Sort options** - Cathy
+  - Segmented picker in the search bar: Type, Date, Priority
+  - Hidden when near-me is active (distance sort takes priority)
+  - Sidebar renders a flat list when sorting by date or priority
+
+- `10:20am` **Marker clustering** - Cathy
+  - Dense pin areas now group into blue cluster circles showing counts
+  - Zoom in to break clusters apart into individual pins
+  - Uses imperative markers with `@googlemaps/markerclusterer` to avoid conflicts with React-managed markers
 
 ### 2025-03-05
 
