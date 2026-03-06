@@ -20,6 +20,33 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ## Changelog
 
+### 2026-03-06
+
+- **Marker clustering** - Cathy
+  - Dense pin areas now group into blue cluster circles showing counts
+  - Zoom in to break clusters apart into individual pins
+  - Uses imperative markers with `@googlemaps/markerclusterer` to avoid conflicts with React-managed markers
+
+- **Sort options** - Cathy
+  - Segmented picker in the search bar: Type, Date, Priority
+  - Hidden when near-me is active (distance sort takes priority)
+  - Sidebar renders a flat list when sorting by date or priority
+
+- **Day-by-day timeline** - Cathy
+  - Scrollable date chip bar replaces the old Today button
+  - Tap a date to filter map + list to that day, tap again to clear
+  - Today's date gets a blue accent dot
+  - Shows on desktop above sidebar and inside mobile bottom sheet
+
+- **Leg-based auto-bounds** - Cathy
+  - Map automatically zooms to fit pins when you toggle a leg/city filter
+  - Clears back to all pins when filter is removed
+
+- **Offline support upgrade** - Cathy
+  - Service worker now uses stale-while-revalidate for API routes
+  - App shell (home, manifest, icons) pre-cached on install
+  - Amber "You're offline" banner appears when connection is lost
+
 ### 2025-03-05
 
 - **Clean up map controls** - Cathy
