@@ -26,6 +26,7 @@ export interface Trip {
   departureDate: string | null
   returnDate: string | null
   status: TripStatus | null
+  coverImage: string | null
 }
 
 export interface TripItem {

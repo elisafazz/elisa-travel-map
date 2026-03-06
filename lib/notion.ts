@@ -36,6 +36,7 @@ export async function fetchAllTrips(): Promise<Trip[]> {
     departureDate: page.properties['Departure Date']?.date?.start ?? null,
     returnDate: page.properties['Return Date']?.date?.start ?? null,
     status: (getText(page.properties['Trip Status']) as TripStatus) || null,
+    coverImage: page.properties['Cover Image']?.url ?? page.cover?.external?.url ?? page.cover?.file?.url ?? null,
   }))
 }
 
