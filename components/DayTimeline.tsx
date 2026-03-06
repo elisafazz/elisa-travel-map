@@ -48,15 +48,15 @@ export default function DayTimeline({ dates, selectedDate, onSelectDate, classNa
             onClick={() => onSelectDate(isSelected ? null : date)}
             className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors relative ${
               isSelected
-                ? 'bg-gray-900 border-gray-900 text-white'
+                ? 'bg-white text-gray-900 border-white'
                 : isToday
-                ? 'bg-blue-50 border-blue-300 text-blue-700'
-                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-500/20 border-blue-400/40 text-blue-300'
+                : 'bg-white/10 border-white/15 text-white/60 hover:bg-white/15'
             }`}
           >
             {formatChip(date)}
             {isToday && !isSelected && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
             )}
           </button>
         )
