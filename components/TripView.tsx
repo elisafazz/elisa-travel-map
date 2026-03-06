@@ -16,6 +16,10 @@ const STATUSES: { value: ItemStatus; label: string; color: string; active: strin
   { value: 'Cancelled',   label: 'Cancelled',   color: 'border-red-300 text-red-500',       active: 'bg-red-500 border-red-500 text-white' },
 ]
 
+type SortMode = 'type' | 'date' | 'priority'
+
+const PRIORITY_ORDER: Record<string, number> = { Must: 0, High: 1, Optional: 2 }
+
 type NearMeState = 'idle' | 'loading' | 'active' | 'error'
 
 function getTodayStr(): string {
@@ -36,6 +40,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   const [activeLegs, setActiveLegs] = useState<Set<string>>(new Set())
   const [activeTypes, setActiveTypes] = useState<Set<ItemType>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
+  const [sortMode, setSortMode] = useState<SortMode>('type')
   const [todayOnly, setTodayOnly] = useState(false)
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [nearMeState, setNearMeState] = useState<NearMeState>('idle')
@@ -115,14 +120,35 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
     .filter(i => !todayOnly || i.date === today)
     .filter(i => !q || i.name.toLowerCase().includes(q) || i.venue.toLowerCase().includes(q))
 
-  // Sort by distance when Near me is active; push unmapped items to bottom
-  const displayItems = nearMeState === 'active' && userLocation
-    ? [...filtered].sort((a, b) => {
+  const sorted = (() => {
+    if (nearMeState === 'active' && userLocation) {
+      return [...filtered].sort((a, b) => {
         const da = a.coordinates ? haversineKm(userLocation.lat, userLocation.lng, a.coordinates.lat, a.coordinates.lng) : Infinity
         const db = b.coordinates ? haversineKm(userLocation.lat, userLocation.lng, b.coordinates.lat, b.coordinates.lng) : Infinity
         return da - db
       })
-    : filtered
+    }
+    switch (sortMode) {
+      case 'date':
+        return [...filtered].sort((a, b) => {
+          if (!a.date && !b.date) return 0
+          if (!a.date) return 1
+          if (!b.date) return -1
+          return a.date.localeCompare(b.date)
+        })
+      case 'priority':
+        return [...filtered].sort((a, b) => {
+          const pa = PRIORITY_ORDER[a.priority ?? ''] ?? 3
+          const pb = PRIORITY_ORDER[b.priority ?? ''] ?? 3
+          return pa - pb
+        })
+      case 'type':
+      default:
+        return filtered
+    }
+  })()
+
+  const displayItems = sorted
 
   const nearMeLabel =
     nearMeState === 'loading' ? '…' :
@@ -149,6 +175,23 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
           <button onClick={() => setSearchQuery('')} className="text-xs text-gray-400 hover:text-gray-600">
             Clear
           </button>
+        )}
+        {nearMeState !== 'active' && (
+          <div className="flex items-center gap-0.5 bg-gray-100 rounded-full p-0.5 flex-shrink-0">
+            {([['type', 'Type'], ['date', 'Date'], ['priority', 'Priority']] as [SortMode, string][]).map(([mode, label]) => (
+              <button
+                key={mode}
+                onClick={() => setSortMode(mode)}
+                className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
+                  sortMode === mode
+                    ? 'bg-white text-gray-900 shadow-sm font-medium'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
@@ -252,6 +295,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
           onSelect={setSelected}
           userLocation={userLocation}
           className={fullscreen ? 'hidden' : 'hidden md:flex'}
+          sortMode={sortMode}
         />
         <div className="relative flex-1">
           <TripMap

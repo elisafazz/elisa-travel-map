@@ -41,14 +41,13 @@ interface Props {
   onSelect: (item: TripItem) => void
   userLocation?: UserLocation | null
   className?: string
+  sortMode?: string
 }
 
-export default function Sidebar({ items, selected, onSelect, userLocation, className = '' }: Props) {
-  // When near-me is active, items are already sorted by distance — show flat list
-  // Otherwise group by type
-  const nearMeActive = !!userLocation
+export default function Sidebar({ items, selected, onSelect, userLocation, className = '', sortMode }: Props) {
+  const flatList = (sortMode !== 'type') || !!userLocation
 
-  const grouped = nearMeActive
+  const grouped = flatList
     ? [{ type: null as ItemType | null, items }]
     : TYPE_ORDER.map(type => ({
         type: type as ItemType | null,
@@ -64,7 +63,7 @@ export default function Sidebar({ items, selected, onSelect, userLocation, class
       <div className="px-4 py-3 border-b border-gray-100">
         <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">
           {items.length} items · {items.filter(i => i.coordinates).length} mapped
-          {nearMeActive && <span className="text-blue-400 ml-1">· sorted by distance</span>}
+          {userLocation && <span className="text-blue-400 ml-1">· sorted by distance</span>}
         </p>
       </div>
 
