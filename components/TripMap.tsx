@@ -69,12 +69,14 @@ function MapContent({
   onSelect,
   userLocation,
   onRecenterReady,
+  fitKey,
 }: {
   items: TripItem[]
   selected: TripItem | null
   onSelect: (item: TripItem | null) => void
   userLocation: UserLocation | null
   onRecenterReady?: (fn: () => void) => void
+  fitKey?: string
 }) {
   const map = useMap()
   const mapped = items.filter(i => i.coordinates)
@@ -114,6 +116,15 @@ function MapContent({
       map.setZoom(15)
     }
   }, [selected, map])
+
+  // Refit bounds when fitKey changes (leg/city filter)
+  const [prevFitKey, setPrevFitKey] = useState(fitKey)
+  useEffect(() => {
+    if (fitKey !== prevFitKey) {
+      setPrevFitKey(fitKey)
+      fitAll()
+    }
+  }, [fitKey, prevFitKey, fitAll])
 
   // Initialize clusterer
   useEffect(() => {
@@ -330,9 +341,10 @@ interface Props {
   onSelect: (item: TripItem | null) => void
   userLocation: UserLocation | null
   onRecenterReady?: (fn: () => void) => void
+  fitKey?: string
 }
 
-export default function TripMap({ items, apiKey, selected, onSelect, userLocation, onRecenterReady }: Props) {
+export default function TripMap({ items, apiKey, selected, onSelect, userLocation, onRecenterReady, fitKey }: Props) {
   const mapped = items.filter(i => i.coordinates)
 
   const center = userLocation ?? (mapped.length > 0
@@ -359,7 +371,7 @@ export default function TripMap({ items, apiKey, selected, onSelect, userLocatio
         clickableIcons={false}
         onClick={() => onSelect(null)}
       >
-        <MapContent items={items} selected={selected} onSelect={onSelect} userLocation={userLocation} onRecenterReady={onRecenterReady} />
+        <MapContent items={items} selected={selected} onSelect={onSelect} userLocation={userLocation} onRecenterReady={onRecenterReady} fitKey={fitKey} />
       </Map>
     </APIProvider>
   )

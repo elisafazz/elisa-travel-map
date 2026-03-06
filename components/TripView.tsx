@@ -145,6 +145,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   })()
 
   const displayItems = sorted
+  const fitKey = activeLegs.size > 0 ? Array.from(activeLegs).sort().join(',') : 'all'
 
   const nearMeLabel =
     nearMeState === 'loading' ? '…' :
@@ -296,6 +297,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
             onSelect={setSelected}
             userLocation={userLocation}
             onRecenterReady={handleRecenterReady}
+            fitKey={fitKey}
           />
           <Legend activeTypes={activeTypes} onToggle={toggleType} onClear={clearTypes} />
           <button
