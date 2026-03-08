@@ -22,6 +22,10 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ### 2026-03-06
 
+- `5:00pm` **Fix recenter button** - Cathy
+  - Recenter now always fits visible pins without biasing toward user location
+  - Filter changes (date, legs, Near Me) include user location when appropriate
+
 - `4:30pm` **Dark theme bottom sheet** - Cathy
   - Bottom sheet now matches the rest of the app with `gray-800` background
   - Dark card-style list items, white text, dark detail view

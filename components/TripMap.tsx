@@ -87,32 +87,26 @@ function MapContent({
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
 
-  const fitAll = useCallback(() => {
+  const fitBounds = useCallback((includeUser: boolean) => {
     if (!map) return
-    // If user location is available, center on it at walkable zoom
-    if (userLocation) {
-      map.panTo(userLocation)
-      if (mapped.length === 0) {
+    const lats = mapped.map(i => i.coordinates!.lat)
+    const lngs = mapped.map(i => i.coordinates!.lng)
+    if (includeUser && userLocation) {
+      lats.push(userLocation.lat)
+      lngs.push(userLocation.lng)
+    }
+    if (lats.length === 0) {
+      if (userLocation) {
+        map.panTo(userLocation)
         map.setZoom(14)
-      } else {
-        // Fit to include user + nearby pins
-        const lats = mapped.map(i => i.coordinates!.lat).concat(userLocation.lat)
-        const lngs = mapped.map(i => i.coordinates!.lng).concat(userLocation.lng)
-        map.fitBounds(
-          { north: Math.max(...lats), south: Math.min(...lats), east: Math.max(...lngs), west: Math.min(...lngs) },
-          60
-        )
       }
       return
     }
-    if (mapped.length === 0) return
-    if (mapped.length === 1) {
-      map.panTo(mapped[0].coordinates!)
+    if (lats.length === 1) {
+      map.panTo({ lat: lats[0], lng: lngs[0] })
       map.setZoom(14)
       return
     }
-    const lats = mapped.map(i => i.coordinates!.lat)
-    const lngs = mapped.map(i => i.coordinates!.lng)
     map.fitBounds(
       { north: Math.max(...lats), south: Math.min(...lats), east: Math.max(...lngs), west: Math.min(...lngs) },
       60
@@ -121,14 +115,14 @@ function MapContent({
 
   // Fit map to all pins on initial load
   useEffect(() => {
-    fitAll()
+    fitBounds(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map])
 
-  // Expose recenter function to parent
+  // Expose recenter function to parent (fits pins only, no user location bias)
   useEffect(() => {
-    onRecenterReady?.(() => fitAll())
-  }, [fitAll, onRecenterReady])
+    onRecenterReady?.(() => fitBounds(false))
+  }, [fitBounds, onRecenterReady])
 
   // Pan to selected item
   useEffect(() => {
@@ -138,14 +132,14 @@ function MapContent({
     }
   }, [selected, map])
 
-  // Refit bounds when fitKey changes (leg/city filter)
+  // Refit bounds when fitKey changes (leg/city/date/nearme filter)
   const [prevFitKey, setPrevFitKey] = useState(fitKey)
   useEffect(() => {
     if (fitKey !== prevFitKey) {
       setPrevFitKey(fitKey)
-      fitAll()
+      fitBounds(!!userLocation)
     }
-  }, [fitKey, prevFitKey, fitAll])
+  }, [fitKey, prevFitKey, fitBounds, userLocation])
 
   // Initialize clusterer once
   useEffect(() => {
