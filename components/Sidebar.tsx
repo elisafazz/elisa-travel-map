@@ -104,7 +104,7 @@ export default function Sidebar({ items, selected, onSelect, userLocation, class
                     key={item.id}
                     onClick={() => onSelect(item)}
                     className={`w-full text-left px-4 py-3 border-b border-white/5 border-l-2 transition-colors flex items-start gap-3 ${
-                      isSelected ? 'bg-white/10 border-l-blue-400' : hasCords ? 'border-l-transparent hover:bg-white/5' : 'border-l-transparent opacity-50 hover:bg-white/5'
+                      isSelected ? 'bg-white/10 border-l-amber-400' : hasCords ? 'border-l-transparent hover:bg-white/5' : 'border-l-transparent opacity-50 hover:bg-white/5'
                     }`}
                   >
                     <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${PRIORITY_DOT[item.priority ?? ''] ?? 'bg-gray-500'}`} />

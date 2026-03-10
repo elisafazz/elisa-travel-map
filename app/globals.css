@@ -5,6 +5,41 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 
+/* Film grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="300" height="300" filter="url(%23n)" opacity="0.4"/></svg>');
+  background-size: 200px 200px;
+}
+
+/* Warm ambient glow */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 20% 100%, rgba(251,191,36,0.04) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 0%, rgba(251,146,36,0.02) 0%, transparent 40%);
+}
+
+/* Display font utility */
+.font-display { font-family: var(--font-display), serif; }
+
+/* Staggered card entrance animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.6s ease-out both;
+}
+
 /* Hide Google Maps bottom-right controls on mobile (blocked by bottom sheet) */
 @media (max-width: 767px) {
   .gm-bundled-control,

@@ -230,7 +230,7 @@ export default function BottomSheet({ items, selected, onSelect, userLocation, s
             )}
 
             <div className="flex items-start gap-3 mb-1">
-              <h2 className="flex-1 font-bold text-base text-white leading-tight">{selected!.name}</h2>
+              <h2 className="flex-1 font-display text-base text-white leading-tight">{selected!.name}</h2>
               <button
                 onClick={handleCopy}
                 className="flex-shrink-0 text-xs px-3 py-1 rounded-full border border-white/15 text-white/40 hover:text-white/70 transition-colors"

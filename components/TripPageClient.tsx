@@ -24,9 +24,9 @@ export default function TripPageClient({ trip, items, apiKey, mappedCount, unmap
       {!fullscreen && (
         <>
           <header className="flex items-center gap-4 px-6 py-3 bg-gray-800 border-b border-white/10 z-20">
-            <Link href="/" className="text-white/50 hover:text-white text-sm transition-colors">← All trips</Link>
+            <Link href="/" className="text-white/50 hover:text-amber-400 text-sm transition-colors">← All trips</Link>
             <div className="flex-1">
-              <h1 className="font-bold text-lg leading-tight text-white">{trip.name}</h1>
+              <h1 className="font-display text-lg leading-tight text-white" style={{ letterSpacing: '-0.2px' }}>{trip.name}</h1>
               <p className="text-white/40 text-xs">{trip.location}</p>
             </div>
             {unmappedCount > 0 && (

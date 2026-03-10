@@ -266,7 +266,7 @@ function MapContent({
           onCloseClick={() => onSelect(null)}
           pixelOffset={[0, -20]}
         >
-          <div style={{ maxWidth: 290, fontFamily: 'system-ui, sans-serif', padding: '2px 0' }}>
+          <div style={{ maxWidth: 290, fontFamily: 'var(--font-body), system-ui, sans-serif', padding: '2px 0' }}>
             {selected.priority && (
               <div style={{
                 height: 3, borderRadius: 2, width: 36, marginBottom: 10,
@@ -275,7 +275,7 @@ function MapContent({
             )}
 
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: '#111', flex: 1, lineHeight: 1.3 }}>
+              <div style={{ fontFamily: 'var(--font-display), serif', fontWeight: 400, fontSize: 16, color: '#111', flex: 1, lineHeight: 1.3 }}>
                 {selected.name}
               </div>
               <CopyButton text={[selected.venue || selected.name, selected.legCity].filter(Boolean).join(', ')} />

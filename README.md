@@ -20,6 +20,15 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ## Changelog
 
+### 2026-03-09
+
+- `7:15pm` **Warm Wanderer design refresh** - Cathy
+  - Typography: DM Serif Display for titles/headings, DM Sans for body text (loaded via next/font)
+  - Home page: amber accent bar under header, staggered fade-up card animations, cards hover with translateY lift, circular arrow button glows amber on hover, Planning badge now amber-tinted
+  - Trip view: serif font for trip name header and info window place names, search focus glows amber, sidebar selected item border amber, map controls hover amber, back arrow hovers amber
+  - Global: film grain texture overlay, warm ambient radial glow from bottom-left corner
+  - Bottom sheet detail title uses serif font, info window uses DM Sans body font
+
 ### 2026-03-06
 
 - `5:00pm` **Fix recenter button** - Cathy

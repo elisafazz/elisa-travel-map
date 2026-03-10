@@ -12,7 +12,7 @@ const GRADIENTS = [
 ]
 
 const STATUS_BADGE: Record<string, string> = {
-  Planning:      'bg-white/15 text-white border border-white/20',
+  Planning:      'bg-amber-400/15 text-amber-200 border border-amber-400/20',
   Booked:        'bg-blue-400/20 text-blue-100 border border-blue-300/20',
   'In Progress': 'bg-green-400/20 text-green-100 border border-green-300/20',
   Completed:     'bg-white/10 text-white/50 border border-white/15',
@@ -33,9 +33,10 @@ export default async function Home() {
 
   return (
     <main className="h-screen flex flex-col bg-gray-950">
-      <div className="flex-shrink-0 px-8 pt-12 pb-8" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top, 0px) + 1rem)' }}>
-        <h1 className="text-4xl font-bold text-white tracking-tight">Trip Maps</h1>
-        <p className="text-white/40 mt-1 text-sm">{trips.length} trip{trips.length !== 1 ? 's' : ''}</p>
+      <div className="flex-shrink-0 px-8 pt-12 pb-8 animate-fade-up" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top, 0px) + 1rem)' }}>
+        <h1 className="font-display text-4xl text-white tracking-tight" style={{ letterSpacing: '-0.5px' }}>Trip Maps</h1>
+        <div className="w-10 h-[2.5px] bg-gradient-to-r from-amber-400 to-amber-500 rounded-full mt-3" />
+        <p className="text-white/30 mt-3 text-sm font-light tracking-wide">{trips.length} trip{trips.length !== 1 ? 's' : ''} planned</p>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -50,7 +51,8 @@ export default async function Home() {
             <Link
               key={trip.id}
               href={`/${trip.id.replace(/-/g, '')}`}
-              className={`group relative overflow-hidden rounded-2xl aspect-[3/2] flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)] ${isCompleted ? 'opacity-60' : ''}`}
+              className={`group relative overflow-hidden rounded-2xl aspect-[3/2] flex flex-col justify-between transition-all duration-400 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.08)] animate-fade-up ${isCompleted ? 'opacity-60' : ''}`}
+              style={{ animationDelay: `${0.1 + i * 0.1}s` }}
             >
               {hasCover ? (
                 <img
@@ -73,19 +75,18 @@ export default async function Home() {
               </div>
 
               <div className="relative z-10 p-5 pt-0">
-                <p className="text-white/60 text-xs font-medium uppercase tracking-widest mb-1">{trip.location}</p>
-                <h2 className="text-white text-2xl font-bold leading-tight">{trip.name}</h2>
+                <p className="text-white/50 text-xs font-normal uppercase tracking-[0.08em] mb-1.5">{trip.location}</p>
+                <h2 className="font-display text-white text-2xl leading-tight" style={{ letterSpacing: '-0.2px' }}>{trip.name}</h2>
                 {dateRange && (
-                  <p className="text-white/50 text-xs mt-2 flex items-center gap-1.5">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-60">
-                      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                    {dateRange}
-                  </p>
+                  <p className="text-white/35 text-xs mt-2 font-light">{dateRange}</p>
                 )}
-                <div className="mt-4 flex items-center gap-1 text-white/40 text-xs font-medium group-hover:text-white/70 transition-colors">
-                  <span>Open map</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-white/30 text-xs font-medium group-hover:text-white/60 transition-colors">Open map</span>
+                  <div className="w-7 h-7 rounded-full bg-white/5 border border-white/8 flex items-center justify-center group-hover:bg-amber-400/15 group-hover:border-amber-400/25 transition-all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/40 group-hover:text-amber-400 group-hover:translate-x-px transition-all">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </Link>
