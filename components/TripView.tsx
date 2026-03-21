@@ -11,10 +11,12 @@ import type { TripItem, ItemStatus, ItemType } from '@/lib/types'
 import type { UserLocation } from '@/lib/geo'
 
 const STATUSES: { value: ItemStatus; label: string; color: string; active: string }[] = [
-  { value: 'Confirmed',   label: 'Confirmed',   color: 'border-green-500/30 text-green-400',   active: 'bg-green-500 border-green-500 text-white shadow-[0_0_8px_rgba(34,197,94,0.4)]' },
-  { value: 'Shortlisted', label: 'Shortlisted', color: 'border-yellow-500/30 text-yellow-400', active: 'bg-yellow-500 border-yellow-500 text-white shadow-[0_0_8px_rgba(234,179,8,0.4)]' },
-  { value: 'Researching', label: 'Researching', color: 'border-white/15 text-white/50',        active: 'bg-white/20 border-white/30 text-white' },
-  { value: 'Cancelled',   label: 'Cancelled',   color: 'border-red-500/30 text-red-400',       active: 'bg-red-500 border-red-500 text-white shadow-[0_0_8px_rgba(239,68,68,0.4)]' },
+  { value: 'Confirmed',          label: 'Confirmed',    color: 'border-green-500/30 text-green-400',   active: 'bg-green-500 border-green-500 text-white shadow-[0_0_8px_rgba(34,197,94,0.4)]' },
+  { value: 'Assigned',           label: 'Assigned',     color: 'border-blue-500/30 text-blue-400',     active: 'bg-blue-500 border-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.4)]' },
+  { value: 'Reservation Pending', label: 'Res. Pending', color: 'border-orange-500/30 text-orange-400', active: 'bg-orange-500 border-orange-500 text-white shadow-[0_0_8px_rgba(249,115,22,0.4)]' },
+  { value: 'Shortlisted',        label: 'Shortlisted',  color: 'border-yellow-500/30 text-yellow-400', active: 'bg-yellow-500 border-yellow-500 text-white shadow-[0_0_8px_rgba(234,179,8,0.4)]' },
+  { value: 'Researching',        label: 'Researching',  color: 'border-white/15 text-white/50',        active: 'bg-white/20 border-white/30 text-white' },
+  { value: 'Cancelled',          label: 'Cancelled',    color: 'border-red-500/30 text-red-400',       active: 'bg-red-500 border-red-500 text-white shadow-[0_0_8px_rgba(239,68,68,0.4)]' },
 ]
 
 type SortMode = 'type' | 'date' | 'priority'
@@ -53,7 +55,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
   }
 
   const legs = Array.from(new Set(items.map(i => i.legCity).filter(Boolean))).sort()
-  const allDates = Array.from(new Set(items.map(i => i.date).filter((d): d is string => !!d))).sort()
+  const allDates = Array.from(new Set(items.map(i => i.assignedToDate ?? i.date).filter((d): d is string => !!d))).sort()
 
   function toggleFilter(status: ItemStatus) {
     setActiveFilters(prev => {
@@ -113,7 +115,7 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
     .filter(i => activeFilters.size === 0 || (i.status && activeFilters.has(i.status)))
     .filter(i => activeLegs.size === 0 || activeLegs.has(i.legCity))
     .filter(i => activeTypes.size === 0 || (i.type && activeTypes.has(i.type)))
-    .filter(i => !selectedDate || i.date === selectedDate)
+    .filter(i => !selectedDate || (i.assignedToDate ?? i.date) === selectedDate)
     .filter(i => !q || i.name.toLowerCase().includes(q) || i.venue.toLowerCase().includes(q))
 
   const NEAR_ME_RADIUS_KM = 5
@@ -131,10 +133,12 @@ export default function TripView({ items, apiKey, legLabel = 'Leg', onFullscreen
     switch (sortMode) {
       case 'date':
         return [...filtered].sort((a, b) => {
-          if (!a.date && !b.date) return 0
-          if (!a.date) return 1
-          if (!b.date) return -1
-          return a.date.localeCompare(b.date)
+          const da = a.assignedToDate ?? a.date
+          const db = b.assignedToDate ?? b.date
+          if (!da && !db) return 0
+          if (!da) return 1
+          if (!db) return -1
+          return da.localeCompare(db)
         })
       case 'priority':
         return [...filtered].sort((a, b) => {

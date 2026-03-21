@@ -11,7 +11,7 @@ export type ItemType =
   | 'Other'
 
 export type ItemPriority = 'Must' | 'High' | 'Optional'
-export type ItemStatus = 'Researching' | 'Shortlisted' | 'Confirmed' | 'Cancelled'
+export type ItemStatus = 'Researching' | 'Shortlisted' | 'Assigned' | 'Reservation Pending' | 'Confirmed' | 'Cancelled'
 
 export interface Coordinates {
   lat: number
@@ -41,6 +41,7 @@ export interface TripItem {
   notes: string
   tripUrl: string
   date: string | null
+  assignedToDate: string | null
   reservationRequired: boolean
   coordinates?: Coordinates
 }

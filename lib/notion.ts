@@ -71,6 +71,7 @@ export async function fetchTripItems(tripId: string): Promise<TripItem[]> {
         notes: getText(page.properties['Notes']),
         tripUrl: page.url,
         date: page.properties['Date']?.date?.start ?? null,
+        assignedToDate: page.properties['Assigned to Date']?.date?.start ?? null,
         reservationRequired: getCheckbox(page.properties['Reservation Required']),
       })
     }
@@ -119,6 +120,7 @@ export async function fetchAllTripItems(): Promise<TripItem[]> {
         notes: getText(page.properties['Notes']),
         tripUrl: `https://www.notion.so/${tripRelation[0].id.replace(/-/g, '')}`,
         date: page.properties['Date']?.date?.start ?? null,
+        assignedToDate: page.properties['Assigned to Date']?.date?.start ?? null,
         reservationRequired: getCheckbox(page.properties['Reservation Required']),
       })
     }

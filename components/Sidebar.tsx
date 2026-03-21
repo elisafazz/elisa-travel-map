@@ -24,10 +24,12 @@ const PRIORITY_DOT: Record<string, string> = {
 }
 
 const STATUS_BORDER: Record<string, string> = {
-  Confirmed:   'border-l-green-400',
-  Shortlisted: 'border-l-yellow-400',
-  Researching: 'border-l-gray-200',
-  Cancelled:   'border-l-red-400',
+  Confirmed:            'border-l-green-400',
+  Shortlisted:          'border-l-yellow-400',
+  Assigned:             'border-l-blue-400',
+  'Reservation Pending': 'border-l-orange-400',
+  Researching:          'border-l-gray-200',
+  Cancelled:            'border-l-red-400',
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -114,7 +116,7 @@ export default function Sidebar({ items, selected, onSelect, userLocation, class
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         {item.legCity && <span className="text-xs text-white/40 truncate">{item.legCity}</span>}
-                        {item.date && <span className="text-xs text-white/25 flex-shrink-0">{formatDate(item.date)}</span>}
+                        {(item.assignedToDate ?? item.date) && <span className="text-xs text-white/25 flex-shrink-0">{formatDate((item.assignedToDate ?? item.date)!)}</span>}
                       </div>
                       {!hasCords && <div className="text-xs text-amber-400/70 mt-0.5">Not geocoded</div>}
                     </div>
