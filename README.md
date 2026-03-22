@@ -20,6 +20,12 @@ An interactive trip planner that pulls trips from Notion and displays them on a 
 
 ## Changelog
 
+### 2026-03-21
+
+- `12:00pm` **Sync with new Notion DB status schema** - Cathy
+  - Added `Assigned` (blue) and `Reservation Pending` (orange) as first-class statuses in filter chips and sidebar borders
+  - Added `assignedToDate` field (reads `Assigned to Date` from Notion); used as primary itinerary date throughout (date filter, sort, display) with fallback to legacy `Date` field
+
 ### 2026-03-09
 
 - `7:15pm` **Warm Wanderer design refresh** - Cathy
